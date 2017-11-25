@@ -2,6 +2,14 @@
     Configs
 '''
 
+import logging.config
+import textwrap
+import os
+import warnings
+
+# Report all mistakes managing asynchronous resources.
+warnings.simplefilter('always', ResourceWarning)
+
 # SERVER params
 # https://aiohttp.readthedocs.io/en/stable/web_reference.html#aiohttp.web.run_app
 SERVER = {
@@ -11,3 +19,95 @@ SERVER['print'] = print(f'''
     ======== Running on http://localhost:{SERVER.get("port", 7000)} ========
                     (Press CTRL+C to quit)
 ''')
+
+
+# Logging settings
+
+# create logs folder
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": "True",
+    "formatters": {
+        "simple": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s \n",
+            "datefmt": "%d-%m-%Y %I:%M:%S %p"
+        },
+        "detailed": {
+            "format": textwrap.dedent('''
+            TIME: %(asctime)s
+            NAME: %(name)s
+            LEVEL: %(levelname)s
+            FILENAME: %(filename)s - line %(lineno)d
+
+            %(message)s
+            ---
+            '''),
+            "datefmt": "%d-%m-%Y %I:%M:%S %p"
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple"
+        },
+        "app_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "logs/app.log",
+            "formatter": "detailed",
+        },
+        "aiohttp_access_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "logs/aiohttp_access.log",
+            "formatter": "detailed"
+        },
+        "aiohttp_web_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "logs/aiohttp_web.log",
+            "formatter": "detailed"
+        },
+        "aiohttp_websocket_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "logs/aiohttp_websocket.log",
+            "formatter": "detailed"
+        },
+        "asyncio_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "logs/asyncio.log",
+            "formatter": "detailed",
+        },
+    },
+    "loggers": {
+        "asyncio": {
+            "handlers": ["console", "asyncio_file"],
+            "level": "INFO"
+        },
+        "aiohttp.access": {
+            "level": "INFO",
+            "handlers": ["console", "aiohttp_access_file"]
+
+        },
+        "aiohttp.web": {
+            "level": "INFO",
+            "handlers": ["console", "aiohttp_web_file"]
+        },
+        "aiohttp.websocket": {
+            "level": "INFO",
+            "handlers": ["console", "aiohttp_websocket_file"]
+        },
+        "app": {
+            "level": "INFO",
+            "handlers": ["console", "app_file"]
+        }
+    }
+}
+# commit logging configs
+logging.config.dictConfig(LOGGING)
