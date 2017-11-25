@@ -11,23 +11,25 @@ import config
 async def ws_handler(request):
     ''' Handles websocket connection'''
 
+    log = request.app.logger
+
     ws = web.WebSocketResponse()
 
     # Display error if ws fails to start
     if not ws.can_prepare(request):
-        print("Well, websocket failed to start..")
+        log.error("Well, websocket failed to start..")
 
     # prepare websocket
     await ws.prepare(request)
 
-    print('Client has connected:', ws)
+    log.info('Client has connected')
     ws.send_str('Well hello there Client hero!')
 
     # go over received message
     async for msg in ws:
-        print('Client sent:', msg)
+        log.info(f'Client sent: {msg}')
 
-    print('Client has disconnected')
+    log.info('Client has disconnected')
     return ws
 
 

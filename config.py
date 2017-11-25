@@ -88,23 +88,23 @@ LOGGING = {
     "loggers": {
         "asyncio": {
             "handlers": ["console", "asyncio_file"],
-            "level": "INFO"
+            "level": "DEBUG"
         },
         "aiohttp.access": {
-            "level": "INFO",
+            "level": "DEBUG",
             "handlers": ["console", "aiohttp_access_file"]
 
         },
         "aiohttp.web": {
-            "level": "INFO",
+            "level": "DEBUG",
             "handlers": ["console", "aiohttp_web_file"]
         },
         "aiohttp.websocket": {
-            "level": "INFO",
+            "level": "DEBUG",
             "handlers": ["console", "aiohttp_websocket_file"]
         },
         "app": {
-            "level": "INFO",
+            "level": "DEBUG",
             "handlers": ["console", "app_file"]
         }
     }
