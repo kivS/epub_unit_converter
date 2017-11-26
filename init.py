@@ -21,6 +21,8 @@ async def ws_handler(request):
 
     # prepare websocket
     await ws.prepare(request)
+    # save ws client
+    request.app['client'] = ws
 
     log.info('Client has connected')
     ws.send_str('Well hello there Client hero!')
@@ -38,12 +40,24 @@ async def index_handler(request):
     return web.FileResponse('./index.html')
 
 
+async def on_shutdown(app):
+    ''' On app shutdown '''
+
+    # close client websocket
+    client_ws = app.get('client')
+    if client_ws:
+        await client_ws.close()
+
+
 async def init():
     app = web.Application()
 
     # routes
     app.router.add_get('/', index_handler)
     app.router.add_get('/wakey_wakey', ws_handler)
+
+    # signals
+    app.on_shutdown.append(on_shutdown)
 
     return app
 

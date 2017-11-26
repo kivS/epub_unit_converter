@@ -27,6 +27,8 @@ SERVER['print'] = print(f'''
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
+MAX_FILE_SIZE_IN_BYTES = 1 * 1024
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": "True",
@@ -59,30 +61,35 @@ LOGGING = {
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/app.log",
             "formatter": "detailed",
+            "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_access_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_access.log",
-            "formatter": "detailed"
+            "formatter": "detailed",
+            "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_web_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_web.log",
-            "formatter": "detailed"
+            "formatter": "detailed",
+            "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_websocket_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_websocket.log",
-            "formatter": "detailed"
+            "formatter": "detailed",
+            "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "asyncio_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/asyncio.log",
             "formatter": "detailed",
+            "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
     },
     "loggers": {
