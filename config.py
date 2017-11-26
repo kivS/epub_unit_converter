@@ -57,35 +57,35 @@ LOGGING = {
             "formatter": "simple"
         },
         "app_file": {
-            "level": "DEBUG",
+            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/app.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_access_file": {
-            "level": "DEBUG",
+            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_access.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_web_file": {
-            "level": "DEBUG",
+            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_web.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_websocket_file": {
-            "level": "DEBUG",
+            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_websocket.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "asyncio_file": {
-            "level": "DEBUG",
+            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/asyncio.log",
             "formatter": "detailed",

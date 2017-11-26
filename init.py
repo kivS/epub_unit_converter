@@ -21,6 +21,7 @@ async def ws_handler(request):
 
     # prepare websocket
     await ws.prepare(request)
+
     # save ws client
     request.app['client'] = ws
 
@@ -50,6 +51,7 @@ async def on_shutdown(app):
 
 
 async def init():
+    ''' Server init config '''
     app = web.Application()
 
     # routes
