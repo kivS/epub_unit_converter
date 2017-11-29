@@ -13,7 +13,7 @@ warnings.simplefilter('always', ResourceWarning)
 # SERVER params
 # https://aiohttp.readthedocs.io/en/stable/web_reference.html#aiohttp.web.run_app
 SERVER = {
-    'port': 7000
+    'port': 7000,
 }
 SERVER['print'] = print(f'''
     ======== Running on http://localhost:{SERVER.get("port", 7000)} ========
@@ -27,7 +27,8 @@ SERVER['print'] = print(f'''
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
-MAX_FILE_SIZE_IN_BYTES = 1 * 1024
+# allocate 1MB to each log file
+MAX_FILE_SIZE_IN_BYTES = 1 * 1024 * 1024
 
 LOGGING = {
     "version": 1,

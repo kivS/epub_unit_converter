@@ -8,10 +8,12 @@ name = "pypi"
 [packages]
 
 aiohttp = "*"
+aiofiles = "*"
 
 
 [dev-packages]
 
+pudb = "*"
 
 
 [requires]

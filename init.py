@@ -5,13 +5,21 @@
 
 import asyncio
 from aiohttp import web
+import aiofiles
 import config
+import json
+
+
+async def convert_epub(file_name, loop=None, app=None):
+    ''' .... '''
+    ws = app.get('client')
 
 
 async def ws_handler(request):
     ''' Handles websocket connection'''
 
     log = request.app.logger
+    loop = request.app.loop
 
     ws = web.WebSocketResponse()
 
@@ -25,14 +33,31 @@ async def ws_handler(request):
     # save ws client
     request.app['client'] = ws
 
-    log.info('Client has connected')
+    log.debug('Client has connected')
     ws.send_str('Well hello there Client hero!')
 
     # go over received message
     async for msg in ws:
-        log.info(f'Client sent: {msg}')
+        log.debug(f'Client sent: {msg}')
 
-    log.info('Client has disconnected')
+        # convert data to json
+        data = json.loads(msg.data)
+
+        # handle messages
+        if data.get('do') == 'convert_epub':
+            file_name = data.get('with')
+
+            # schedule task for converting epub
+            loop.create_task(convert_epub(file_name, app=request.app, loop=loop))
+
+        elif data.get('do') == 'set_convertion_unit':
+            # get convertion unit
+            unit_system = data.get('with', 'imperial')
+
+            request.app['convertion_unit'] = unit_system
+            log.debug(f'Convertion unit set to {unit_system}')
+
+    log.debug('Client has disconnected')
     return ws
 
 

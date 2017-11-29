@@ -13,6 +13,15 @@
         console.log(e);
     }
 
+    ws.onopen = function (event) {
+       // set covertion type
+       ws.send(JSON.stringify({"do": 'set_convertion_unit', "with": "metric"}))
+       
+       // send epub file location
+       ws.send(JSON.stringify({"do": 'convert_epub', "with": "C:/Users/mr_sir/Dropbox/Private/ESTUDO/Projectos/py_epub_unit_converter/tests/dummy.epub"}))
+
+
+    };
 </script>
 </body>
 </html>
