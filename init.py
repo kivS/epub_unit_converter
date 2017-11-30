@@ -8,11 +8,33 @@ from aiohttp import web
 import aiofiles
 import config
 import json
+import os
+import logging
+import io
+import zipfile
 
 
 async def convert_epub(file_name, loop=None, app=None):
     ''' .... '''
     ws = app.get('client')
+    log = logging.getLogger('app')
+
+    # check if file exists.
+    if not os.path.exists(file_name):
+        ws.send_str(f'File not found: {file_name}')
+    else:
+        # open file
+        log.debug(f'opening file: [{file_name}]')
+        async with aiofiles.open(file_name, 'rb') as f:
+            file_bin = await f.read()
+
+        # get basename of epub file
+        epub_name = os.path.basename(file_name)
+        # remove extension
+        epub_name, _ = os.path.splitext(epub_name)
+
+        # save zipfile in memory
+        app['epubs'][epub_name] = zipfile.ZipFile(io.BytesIO(file_bin))
 
 
 async def ws_handler(request):
@@ -78,6 +100,9 @@ async def on_shutdown(app):
 async def init():
     ''' Server init config '''
     app = web.Application()
+
+    # init globals
+    app['epubs'] = {}
 
     # routes
     app.router.add_get('/', index_handler)
