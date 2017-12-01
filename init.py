@@ -14,12 +14,19 @@ import io
 import zipfile
 
 
+class ManipulateEpub:
+    def __init__(self, epub_file_name, epub_obj):
+        pass
+
+    async def start(self):
+        pass
+
+
 async def convert_epub(file_name, loop=None, app=None):
     ''' .... '''
     ws = app.get('client')
     log = logging.getLogger('app')
 
-    # check if file exists.
     if not os.path.exists(file_name):
         ws.send_str(f'File not found: {file_name}')
     else:
@@ -28,13 +35,18 @@ async def convert_epub(file_name, loop=None, app=None):
         async with aiofiles.open(file_name, 'rb') as f:
             file_bin = await f.read()
 
-        # get basename of epub file
+        # get epub name of out the path & remove extension
         epub_name = os.path.basename(file_name)
-        # remove extension
         epub_name, _ = os.path.splitext(epub_name)
 
-        # save zipfile in memory
-        app['epubs'][epub_name] = zipfile.ZipFile(io.BytesIO(file_bin))
+        # pass epub bin stream into class responsable for transforming epub
+        transform_epub = ManipulateEpub(epub_name, io.BytesIO(file_bin))
+
+        # clean up
+        del f, file_bin
+
+        # start epub transformations
+        await transform_epub.start()
 
 
 async def ws_handler(request):
