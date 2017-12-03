@@ -16,6 +16,21 @@ import re
 
 
 FLAGS = re.VERBOSE | re.IGNORECASE | re.MULTILINE
+
+
+def build_regexp(unit_regexp):
+    return re.compile(r'''
+            (?P<value>       # group name: value
+                \d+
+            )
+            [ ]*             # match zero or more spaces between the value and the unit
+            (?P<unit>        # group name: unit
+                {0}          # specific unit regular expression
+            )
+            \b               # make sure it ends in a word
+        '''.format(unit_regexp), FLAGS)
+
+
 UNIT_CONVERSION_TO = {
     'metric': [
         {
@@ -34,103 +49,54 @@ UNIT_CONVERSION_TO = {
     'imperial': [
         {
             'name': 'Meter',
-            'regexp': re.compile(r'''
-                            (?P<value>       # group name: value
-                                \d+
-                            )
-                            [ ]*             # match zero or more spaces between the value and the unit
-                            (?P<unit>        # group name: unit
+            'regexp': build_regexp(r'''
                                 m
                                 | meter[s]?  #  match unit - meter or meters
-                            )
-                            \b               # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         },
         {
             'name': 'Kilogram',
-            'regexp': re.compile(r'''
-                            (?P<value>        # group name: value
-                                \d+
-                            )
-                            [ ]*              # match zero or more spaces between the value and the unit
-                            (?P<unit>         # group name: unit
+            'regexp': build_regexp(r'''
                                kg
                                | kilogram[s]? # match plurar or singular
                                | kilogramme
-                            )
-                            \b                # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         },
         {
             'name': 'Kilometer',
-            'regexp': re.compile(r'''
-                            (?P<value>       # group name: value
-                                \d+
-                            )
-                            [ ]*             # match zero or more spaces between the value and the unit
-                            (?P<unit>        # group name: unit
+            'regexp': build_regexp(r'''
                                 km
                                 | kilometer[s]?
-                            )
-                            \b               # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         },
         {
             'name': 'Centimeter',
-            'regexp': re.compile(r'''
-                            (?P<value>       # group name: value
-                                \d+
-                            )
-                            [ ]*             # match zero or more spaces between the value and the unit
-                            (?P<unit>        # group name: unit
+            'regexp': build_regexp(r'''
                                 cm
                                 | centimeter[s]?
-                            )
-                            \b               # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         },
         {
             'name': 'Liter',
-            'regexp': re.compile(r'''
-                            (?P<value>       # group name: value
-                                \d+
-                            )
-                            [ ]*             # match zero or more spaces between the value and the unit
-                            (?P<unit>        # group name: unit
+            'regexp': build_regexp(r'''
                                 liter[s]?
                                 | l
-                            )
-                            \b               # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         },
         {
             'name': 'Gram',
-            'regexp': re.compile(r'''
-                            (?P<value>       # group name: value
-                                \d+
-                            )
-                            [ ]*             # match zero or more spaces between the value and the unit
-                            (?P<unit>        # group name: unit
+            'regexp': build_regexp(r'''
                                 gram[s]?
                                 | g
-                            )
-                            \b               # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         },
         {
             'name': 'Celcius',
-            'regexp': re.compile(r'''
-                            (?P<value>       # group name: value
-                                \d+
-                            )
-                            [ ]*             # match zero or more spaces between the value and the unit
-                            (?P<unit>        # group name: unit
+            'regexp': build_regexp(r'''
                                 c
                                 | celcius
                                 | °C
-                            )
-                            \b               # make sure it ends in a word
-                        ''', FLAGS)
+                        ''')
         }
     ]
 }
@@ -147,7 +113,7 @@ class ManipulateEpub:
         self.logger = logging.getLogger('app')
         self.tag = f'Epub:[{epub_file_name}] | -'
 
-        self.log_info('Processing file')
+        self.log_info('Starting processing...')
 
     async def start(self):
         await self.get_epub_contents()
@@ -160,14 +126,15 @@ class ManipulateEpub:
         ''' go over each file in the epub & store it in a list with its content '''
         with zipfile.ZipFile(self.epub_obj, 'r') as epub:
             for file in epub.filelist:
-                self.files_in_epub.append({'file': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
+                self.files_in_epub.append({'name': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
 
     async def convert_epub_contents(self):
         ''' Go over the epub's files and search all unit regexps for the conversion_unit selected '''
         for file in self.files_in_epub:
+            self.log_info(f'Searching file: {file["name"]}')
             for unit in UNIT_CONVERSION_TO[self.conversion_unit]:
                 # execute regexp of each unit and store regexp obj in list
-                self.log_info(f'Regexp: searching for {unit.get("name")}')
+                self.log_info(f'Regexp: searching for: {unit["name"]} unit')
                 regexp_result = list(unit.get('regexp').finditer(file.get('content')))
 
                 if len(regexp_result) > 0:
