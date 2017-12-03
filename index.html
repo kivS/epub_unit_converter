@@ -15,7 +15,7 @@
 
     ws.onopen = function (event) {
        // set covertion type
-       ws.send(JSON.stringify({"do": 'set_convertion_unit', "with": "metric"}))
+       ws.send(JSON.stringify({"do": 'set_conversion_unit', "with": "imperial"}))
        
        // send epub file location
        ws.send(JSON.stringify({"do": 'convert_epub', "with": "tests/test_file.epub"}))
