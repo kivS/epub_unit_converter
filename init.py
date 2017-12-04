@@ -39,13 +39,13 @@ UNIT_CONVERSION_TO = {
                     lbs
                     | lb
                     | lbm
-                    | pound[s]?
+                    | pound[s]?  # get plural or singular form
                 ''')
         },
         {
             'name': 'Inches',
             'regexp': build_regexp(r'''
-                    inch(?:es)?
+                    inch(?:es)? # match group for plural-dont capture- or singular form
                 ''')
         },
         {
@@ -59,7 +59,7 @@ UNIT_CONVERSION_TO = {
         {
             'name': 'Yard',
             'regexp': build_regexp(r'''
-                    yard[s]?
+                    yard[s]?  # get plural or singular form
                     | yd
                 ''')
         },
@@ -67,7 +67,7 @@ UNIT_CONVERSION_TO = {
             'name': 'Gallon',
             'regexp': build_regexp(r'''
                    gal
-                   | gallon[s]?
+                   | gallon[s]?  # get plural or singular form
                 ''')
         },
         {
@@ -166,6 +166,9 @@ class ManipulateEpub:
         ''' go over each file in the epub & store it in a list with its content '''
         with zipfile.ZipFile(self.epub_obj, 'r') as epub:
             for file in epub.filelist:
+                # ignore folders
+                if file.is_dir():
+                    continue
                 self.files_in_epub.append({'name': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
 
     async def convert_epub_contents(self):
