@@ -35,7 +35,7 @@ UNIT_CONVERSION_TO = {
     'metric': [
         {
             'name': 'Pounds',
-            ''
+            'convertsTo': 'kg',
             'regexp': build_regexp(r'''
                     lbs
                     | lb
@@ -45,12 +45,14 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Inches',
+            'convertsTo': 'cm',
             'regexp': build_regexp(r'''
                     inch(?:es)? # match group for plural-dont capture- or singular form
                 ''')
         },
         {
             'name': 'Foot',
+            'convertsTo': 'm',
             'regexp': build_regexp(r'''
                     foot
                     | feet
@@ -59,6 +61,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Yard',
+            'convertsTo': 'm',
             'regexp': build_regexp(r'''
                     yard[s]?  # get plural or singular form
                     | yd
@@ -66,6 +69,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Gallon',
+            'convertsTo': 'liters',
             'regexp': build_regexp(r'''
                    gal
                    | gallon[s]?  # get plural or singular form
@@ -73,6 +77,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Ounce',
+            'convertsTo': 'g',
             'regexp': build_regexp(r'''
                     oz
                     | ounce[s]?
@@ -80,6 +85,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Fahrenheit',
+            'convertsTo': 'celcius',
             'regexp': build_regexp(r'''
                     fahrenheit
                     | f
@@ -90,6 +96,7 @@ UNIT_CONVERSION_TO = {
     'imperial': [
         {
             'name': 'Meter',
+            'convertsTo': 'feet',
             'regexp': build_regexp(r'''
                                 m
                                 | meter[s]?  #  match unit - meter or meters
@@ -97,6 +104,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Kilogram',
+            'convertsTo': 'lbs',
             'regexp': build_regexp(r'''
                                kg
                                | kilogram[s]? # match plural or singular
@@ -105,6 +113,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Kilometer',
+            'convertsTo': 'miles',
             'regexp': build_regexp(r'''
                                 km
                                 | kilometer[s]?
@@ -112,6 +121,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Centimeter',
+            'convertsTo': 'inch',
             'regexp': build_regexp(r'''
                                 cm
                                 | centimeter[s]?
@@ -119,6 +129,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Liter',
+            'convertsTo': 'gal',
             'regexp': build_regexp(r'''
                                 liter[s]?
                                 | l
@@ -126,6 +137,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Gram',
+            'convertsTo': 'oz',
             'regexp': build_regexp(r'''
                                 gram[s]?
                                 | g
@@ -133,6 +145,7 @@ UNIT_CONVERSION_TO = {
         },
         {
             'name': 'Celcius',
+            'convertsTo': 'fahrenheit',
             'regexp': build_regexp(r'''
                                 c
                                 | celcius
