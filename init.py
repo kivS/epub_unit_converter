@@ -35,56 +35,16 @@ UNIT_CONVERSION_TO = {
     'metric': [
         {
             'name': 'Pounds',
-            'regexp': build_regexp(r'''
-                    lbs
-                    | lb
-                    | lbm
-                    | pound[s]?
-                ''')
+            'regexp': ''
+        },
+        {
+            'name': 'Miles',
+            'regexp': ''
         },
         {
             'name': 'Inches',
-            'regexp': build_regexp(r'''
-                    inch(?:es)?
-                ''')
-        },
-        {
-            'name': 'Foot',
-            'regexp': build_regexp(r'''
-                    foot
-                    | feet
-                    | ft
-                ''')
-        },
-        {
-            'name': 'Yard',
-            'regexp': build_regexp(r'''
-                    yard[s]?
-                    | yd
-                ''')
-        },
-        {
-            'name': 'Gallon',
-            'regexp': build_regexp(r'''
-                   gal
-                   | gallon[s]?
-                ''')
-        },
-        {
-            'name': 'Ounce',
-            'regexp': build_regexp(r'''
-                    oz
-                    | ounce[s]?
-                ''')
-        },
-        {
-            'name': 'Fahrenheit',
-            'regexp': build_regexp(r'''
-                    fahrenheit
-                    | f
-                ''')
-        },
-
+            'regexp': ''
+        }
     ],
     'imperial': [
         {
@@ -98,7 +58,7 @@ UNIT_CONVERSION_TO = {
             'name': 'Kilogram',
             'regexp': build_regexp(r'''
                                kg
-                               | kilogram[s]? # match plural or singular
+                               | kilogram[s]? # match plurar or singular
                                | kilogramme
                         ''')
         },
@@ -153,7 +113,7 @@ class ManipulateEpub:
         self.logger = logging.getLogger('app')
         self.tag = f'Epub:[{epub_file_name}] | -'
 
-        self.log_info('Starting...')
+        self.log_info('Starting processing...')
 
     async def start(self):
         await self.get_epub_contents()
