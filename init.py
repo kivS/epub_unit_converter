@@ -35,6 +35,7 @@ UNIT_CONVERSION_TO = {
     'metric': [
         {
             'name': 'Pounds',
+            ''
             'regexp': build_regexp(r'''
                     lbs
                     | lb
@@ -178,10 +179,17 @@ class ManipulateEpub:
             for unit in UNIT_CONVERSION_TO[self.conversion_unit]:
                 # execute regexp of each unit and store regexp obj in list
                 self.log_info(f'Regexp: searching for: {unit["name"]} unit')
-                regexp_result = list(unit.get('regexp').finditer(file.get('content')))
+                regexp_result = list(unit['regexp'].finditer(file['content']))
 
                 if len(regexp_result) > 0:
                     self.log_info(f'Regexp result: {regexp_result}')
+
+                    for regexp in regexp_result:
+                        converted_unit = '<span>(<--- PlaceHolder For Converted Text --->)</span>'
+
+                        # replace content for: text till position of matched text + converted text + text after the position of the matched text
+                        file['content'] = file['content'][:regexp.end()] + converted_unit + file['content'][regexp.end():]
+
                 else:
                     self.log_info('Regexp: No result found...')
 
