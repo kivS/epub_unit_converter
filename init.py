@@ -13,6 +13,7 @@ import logging
 import io
 import zipfile
 import re
+import pint
 
 
 FLAGS = re.VERBOSE | re.IGNORECASE | re.MULTILINE
@@ -34,7 +35,7 @@ def build_regexp(unit_regexp):
 UNIT_CONVERSION_TO = {
     'metric': [
         {
-            'name': 'Pounds',
+            'name': 'pounds',
             'convertsTo': 'kg',
             'regexp': build_regexp(r'''
                     lbs
@@ -44,14 +45,14 @@ UNIT_CONVERSION_TO = {
                 ''')
         },
         {
-            'name': 'Inches',
+            'name': 'inches',
             'convertsTo': 'cm',
             'regexp': build_regexp(r'''
                     inch(?:es)? # match group for plural-dont capture- or singular form
                 ''')
         },
         {
-            'name': 'Foot',
+            'name': 'foot',
             'convertsTo': 'm',
             'regexp': build_regexp(r'''
                     foot
@@ -60,7 +61,7 @@ UNIT_CONVERSION_TO = {
                 ''')
         },
         {
-            'name': 'Yard',
+            'name': 'yard',
             'convertsTo': 'm',
             'regexp': build_regexp(r'''
                     yard[s]?  # get plural or singular form
@@ -68,7 +69,7 @@ UNIT_CONVERSION_TO = {
                 ''')
         },
         {
-            'name': 'Gallon',
+            'name': 'gallon',
             'convertsTo': 'liters',
             'regexp': build_regexp(r'''
                    gal
@@ -76,7 +77,7 @@ UNIT_CONVERSION_TO = {
                 ''')
         },
         {
-            'name': 'Ounce',
+            'name': 'ounce',
             'convertsTo': 'g',
             'regexp': build_regexp(r'''
                     oz
@@ -84,8 +85,8 @@ UNIT_CONVERSION_TO = {
                 ''')
         },
         {
-            'name': 'Fahrenheit',
-            'convertsTo': 'celcius',
+            'name': 'degF',
+            'convertsTo': 'degC',
             'regexp': build_regexp(r'''
                     fahrenheit
                     | f
@@ -95,7 +96,7 @@ UNIT_CONVERSION_TO = {
     ],
     'imperial': [
         {
-            'name': 'Meter',
+            'name': 'meter',
             'convertsTo': 'feet',
             'regexp': build_regexp(r'''
                                 m
@@ -103,7 +104,7 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'Kilogram',
+            'name': 'kilogram',
             'convertsTo': 'lbs',
             'regexp': build_regexp(r'''
                                kg
@@ -112,7 +113,7 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'Kilometer',
+            'name': 'kilometer',
             'convertsTo': 'miles',
             'regexp': build_regexp(r'''
                                 km
@@ -120,7 +121,7 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'Centimeter',
+            'name': 'centimeter',
             'convertsTo': 'inch',
             'regexp': build_regexp(r'''
                                 cm
@@ -128,7 +129,7 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'Liter',
+            'name': 'liter',
             'convertsTo': 'gal',
             'regexp': build_regexp(r'''
                                 liter[s]?
@@ -136,7 +137,7 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'Gram',
+            'name': 'gram',
             'convertsTo': 'oz',
             'regexp': build_regexp(r'''
                                 gram[s]?
@@ -144,8 +145,8 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'Celcius',
-            'convertsTo': 'fahrenheit',
+            'name': 'degC',
+            'convertsTo': 'degF',
             'regexp': build_regexp(r'''
                                 c
                                 | celcius
@@ -173,9 +174,6 @@ class ManipulateEpub:
         await self.get_epub_contents()
         await self.convert_epub_contents()
 
-    def log_info(self, msg):
-        self.logger.info(f'{self.tag} {msg}')
-
     async def get_epub_contents(self):
         ''' go over each file in the epub & store it in a list with its content '''
         with zipfile.ZipFile(self.epub_obj, 'r') as epub:
@@ -198,13 +196,35 @@ class ManipulateEpub:
                     self.log_info(f'Regexp result: {regexp_result}')
 
                     for regexp in regexp_result:
-                        converted_unit = '<span>(<--- PlaceHolder For Converted Text --->)</span>'
+
+                        try:
+                            # parse regexp result value into Pint
+                            pint_parsed_value = UREG(f'{regexp.group("value")} {unit["name"]}')
+                            # Convert to metric/imperial counterpart
+                            converted_unit = pint_parsed_value.to(unit["convertsTo"])
+                        except Exception as e:
+                            # TODO: log error
+                            continue
+                        else:
+                            converted_unit_text = f'<span>({self.format_unit(converted_unit, unit["convertsTo"])})</span>'
+                            self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
 
                         # replace content for: text till position of matched text + converted text + text after the position of the matched text
-                        file['content'] = file['content'][:regexp.end()] + converted_unit + file['content'][regexp.end():]
+                        file['content'] = file['content'][:regexp.end()] + converted_unit_text + file['content'][regexp.end():]
 
                 else:
                     self.log_info('Regexp: No result found...')
+
+    def format_unit(self, converted_unit, convertsTo):
+        '''
+            given a converted_unit object & the unit it converts to,
+            return a string where the value is rounded
+        '''
+        rounded_magnitude = round(converted_unit.magnitude, 2)
+        return f'{rounded_magnitude} {convertsTo}'
+
+    def log_info(self, msg):
+        self.logger.info(f'{self.tag} {msg}')
 
 
 async def convert_epub(file_name, loop=None, app=None):
@@ -312,6 +332,9 @@ async def init():
 
 
 if __name__ == "__main__":
+
+    UREG = pint.UnitRegistry()
+
     loop = asyncio.get_event_loop()
     app = loop.run_until_complete(init())
 
