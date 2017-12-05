@@ -160,7 +160,8 @@ UNIT_CONVERSION_TO = {
 class ManipulateEpub:
     ''' Class reponsable for transforming the epub file '''
 
-    conversion_result_template = '<span>{0}</span>'
+    # string template for text inserted into epub with converted units
+    conversion_result_template = '<span id="py_epub">{0}</span>'
 
     def __init__(self, epub_file_name, epub_obj, app):
         self.epub_file_name = epub_file_name
@@ -197,6 +198,7 @@ class ManipulateEpub:
                 if len(regexp_result) > 0:
                     self.log_info(f'Regexp result: {regexp_result}')
 
+                    # go over each regexp result on current file
                     for regexp in regexp_result:
 
                         try:
@@ -217,10 +219,12 @@ class ManipulateEpub:
                 else:
                     self.log_info('Regexp: No result found...')
 
+        self.log_info('Done.')
+
     def format_unit(self, converted_unit, convertsTo):
         '''
             given a converted_unit object & the unit it converts to,
-            return a string where the value is rounded
+            return a string where the value is rounded.
         '''
         rounded_magnitude = round(converted_unit.magnitude, 2)
         text_separator = '' if len(convertsTo) < 2 else ' '
