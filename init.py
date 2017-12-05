@@ -160,6 +160,8 @@ UNIT_CONVERSION_TO = {
 class ManipulateEpub:
     ''' Class reponsable for transforming the epub file '''
 
+    conversion_result_template = '<span>{0}</span>'
+
     def __init__(self, epub_file_name, epub_obj, app):
         self.epub_file_name = epub_file_name
         self.epub_obj = epub_obj
@@ -206,7 +208,7 @@ class ManipulateEpub:
                             # TODO: log error
                             continue
                         else:
-                            converted_unit_text = f'<span>({self.format_unit(converted_unit, unit["convertsTo"])})</span>'
+                            converted_unit_text = self.conversion_result_template.format(self.format_unit(converted_unit, unit["convertsTo"]))
                             self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
 
                         # replace content for: text till position of matched text + converted text + text after the position of the matched text
