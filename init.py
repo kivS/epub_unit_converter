@@ -221,7 +221,9 @@ class ManipulateEpub:
             return a string where the value is rounded
         '''
         rounded_magnitude = round(converted_unit.magnitude, 2)
-        return f'{rounded_magnitude} {convertsTo}'
+        text_separator = '' if len(convertsTo) < 2 else ' '
+
+        return f'{rounded_magnitude}{text_separator}{convertsTo}'
 
     def log_info(self, msg):
         self.logger.info(f'{self.tag} {msg}')
