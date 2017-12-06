@@ -211,8 +211,19 @@ class ManipulateEpub:
                             converted_unit_text = self.conversion_result_template.format(self.format_unit(converted_unit, unit["convertsTo"]))
                             self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
 
-                        # replace content for: text till position of matched text + converted text + text after the position of the matched text
-                        file['content'] = file['content'][:regexp.end()] + converted_unit_text + file['content'][regexp.end():]
+                        # if conversion already took place lets replace it
+                        span_start_index = file['content'].find('<span id="py_epub">', regexp.end())
+
+                        if span_start_index != -1:
+                            # get the index of the start of '</span'> + 7 which is the length of it
+                            span_end_index = file['content'].find('</span>', span_start_index) + 7
+
+                            # perform the replacement
+                            file['content'] = file['content'][:span_start_index] + converted_unit_text + file['content'][span_end_index:]
+                            self.log_info('Replaced old convertion with new one...')
+                        else:
+                            # replace content for: text till position of matched text + converted text + text after the position of the matched text
+                            file['content'] = file['content'][:regexp.end()] + converted_unit_text + file['content'][regexp.end():]
 
                 else:
                     self.log_info('Regexp: No result found...')
