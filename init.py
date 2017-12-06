@@ -224,7 +224,7 @@ class ManipulateEpub:
             given a converted_unit object & the unit it converts to,
             return a string where the value is rounded.
         '''
-        precision_of_digits = 1
+        precision_of_digits = 2
         rounded_magnitude = round(converted_unit.magnitude, precision_of_digits)
         # add dynamic sapce depending on the length of the result unit
         text_separator = '' if len(convertsTo) < 2 else ' '
