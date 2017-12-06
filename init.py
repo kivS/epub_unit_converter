@@ -84,11 +84,11 @@ UNIT_CONVERSION_TO = {
                 ''')
         },
         {
-            'name': 'degF',
-            'convertsTo': 'degC',
+            'name': 'fahrenheit',
+            'convertsTo': 'celsius',
             'regexp': build_regexp(r'''
                     fahrenheit
-                    | f
+                    | °F
                 ''')
         },
 
@@ -143,11 +143,11 @@ UNIT_CONVERSION_TO = {
                         ''')
         },
         {
-            'name': 'degC',
-            'convertsTo': 'degF',
+            'name': 'celsius',
+            'convertsTo': 'fahrenheit',
             'regexp': build_regexp(r'''
                                 c
-                                | celcius
+                                | celsius
                                 | °C
                         ''')
         }
@@ -341,7 +341,7 @@ async def init():
 
 if __name__ == "__main__":
 
-    UREG = pint.UnitRegistry()
+    UREG = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
 
     loop = asyncio.get_event_loop()
     app = loop.run_until_complete(init())
