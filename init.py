@@ -146,8 +146,7 @@ UNIT_CONVERSION_TO = {
             'name': 'celsius',
             'convertsTo': 'fahrenheit',
             'regexp': build_regexp(r'''
-                                c
-                                | celsius
+                                celsius
                                 | °C
                         ''')
         }
@@ -205,7 +204,7 @@ class ManipulateEpub:
                             # Convert to metric/imperial counterpart
                             converted_unit = pint_parsed_value.to(unit["convertsTo"])
                         except Exception as e:
-                            # TODO: log error
+                            self.log_error(e)
                             continue
                         else:
                             # fill the string template with the converted & formated value with unit string
@@ -225,7 +224,8 @@ class ManipulateEpub:
             given a converted_unit object & the unit it converts to,
             return a string where the value is rounded.
         '''
-        rounded_magnitude = round(converted_unit.magnitude, 2)
+        precision_of_digits = 1
+        rounded_magnitude = round(converted_unit.magnitude, precision_of_digits)
         # add dynamic sapce depending on the length of the result unit
         text_separator = '' if len(convertsTo) < 2 else ' '
 
@@ -233,6 +233,9 @@ class ManipulateEpub:
 
     def log_info(self, msg):
         self.logger.info(f'{self.tag} {msg}')
+
+    def log_error(self, msg):
+        self.logger.error(f'{self.tag} {msg}')
 
 
 async def convert_epub(file_name, loop=None, app=None):
