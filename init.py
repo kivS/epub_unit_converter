@@ -40,7 +40,6 @@ UNIT_CONVERSION_TO = {
             'regexp': build_regexp(r'''
                     lbs
                     | lb
-                    | lbm
                     | pound[s]?  # get plural or singular form
                 ''')
         },
@@ -109,7 +108,6 @@ UNIT_CONVERSION_TO = {
             'regexp': build_regexp(r'''
                                kg
                                | kilogram[s]? # match plural or singular
-                               | kilogramme
                         ''')
         },
         {
@@ -210,6 +208,7 @@ class ManipulateEpub:
                             # TODO: log error
                             continue
                         else:
+                            # fill the string template with the converted & formated value with unit string
                             converted_unit_text = self.conversion_result_template.format(self.format_unit(converted_unit, unit["convertsTo"]))
                             self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
 
@@ -227,6 +226,7 @@ class ManipulateEpub:
             return a string where the value is rounded.
         '''
         rounded_magnitude = round(converted_unit.magnitude, 2)
+        # add dynamic sapce depending on the length of the result unit
         text_separator = '' if len(convertsTo) < 2 else ' '
 
         return f'{rounded_magnitude}{text_separator}{convertsTo}'
