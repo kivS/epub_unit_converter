@@ -181,6 +181,11 @@ class ManipulateEpub:
                 # ignore folders
                 if file.is_dir():
                     continue
+                # ignore files that don't end the allowed extension list
+                *_, extension = file.filename.split('.')
+                if extension not in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
+                    continue
+
                 self.files_in_epub.append({'name': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
 
     async def convert_epub_contents(self):

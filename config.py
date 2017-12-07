@@ -120,3 +120,6 @@ LOGGING = {
 # commit logging configs
 logging.config.dictConfig(LOGGING)
 
+
+# File extensions inside EPUB files that are targeted for conversion
+ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS = ['html', 'xhtml']
