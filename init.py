@@ -163,16 +163,22 @@ class ManipulateEpub:
     def __init__(self, epub_file_name, epub_obj, app):
         self.epub_file_name = epub_file_name
         self.epub_obj = epub_obj
+        # files in epub that will be processed
         self.files_in_epub = []
         self.conversion_unit = app.get('conversion_unit')
         self.logger = logging.getLogger('app')
         self.tag = f'Epub:[{epub_file_name}] | -'
+        # add epub container containing meta data and eventually the final epub file into epubs list
+        # set number of the counter of the changes made to the epub's contents to 0
+        self.epub_container = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0})
 
         self.log_info('Starting...')
 
     async def start(self):
+        ''' Start conversion manipulations on epub file'''
         await self.get_epub_contents()
         await self.convert_epub_contents()
+        await self.save_final_epub()
 
     async def get_epub_contents(self):
         ''' go over each file in the epub & store it in a list with its content '''
@@ -181,7 +187,7 @@ class ManipulateEpub:
                 # ignore folders
                 if file.is_dir():
                     continue
-                # ignore files that don't end the allowed extension list
+                # ignore files whose extension in not in the allowed extensions list
                 *_, extension = file.filename.split('.')
                 if extension not in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
                     continue
@@ -226,14 +232,35 @@ class ManipulateEpub:
                             # perform the replacement
                             file['content'] = file['content'][:span_start_index] + converted_unit_text + file['content'][span_end_index:]
                             self.log_info('Replaced old convertion with new one...')
+                            # add +1 to changes made to epub file
+                            self.epub_container['num_of_content_changes'] += 1
                         else:
                             # replace content for: text till position of matched text + converted text + text after the position of the matched text
                             file['content'] = file['content'][:regexp.end()] + converted_unit_text + file['content'][regexp.end():]
-
+                            # add +1 to changes made to epub file
+                            self.epub_container['num_of_content_changes'] += 1
                 else:
                     self.log_info('Regexp: No result found...')
 
         self.log_info('Done.')
+        self.log_info(f'Number of changes: {self.epub_container["num_of_content_changes"]}')
+
+    async def save_final_epub(self):
+        ''' Update epub file with changes made by conversion & save final epub to globals '''
+        with zipfile.ZipFile(self.epub_obj, 'w') as epub:
+            for file in self.files_in_epub:
+                # ignore files whose content has not changed
+                if len(file['content']) == file['content_original_size']:
+                    continue
+
+                # replace file in epub(zipfile)
+                epub.writestr(file['name'], file['content'])
+
+        # save final epub
+        self.epub_container['final_epub'] = self.epub_obj.getvalue()
+        # close epub_obj stream
+        self.epub_obj.close()
+        self.log_info('All done, final epub saved!')
 
     def format_unit(self, converted_unit, convertsTo):
         '''
