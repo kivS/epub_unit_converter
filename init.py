@@ -282,7 +282,7 @@ class ManipulateEpub:
         self.logger.error(f'{self.tag} {msg}')
 
 
-async def convert_epub(file_location: str, loop=None, app=None):
+async def convert_epub(file_location: str, app=None):
     ''' .... '''
     ws = app.get('client')
     log = logging.getLogger('app')
@@ -342,7 +342,7 @@ async def ws_handler(request):
             file_location = data.get('with')
 
             # schedule task for converting epub
-            loop.create_task(convert_epub(file_location, app=request.app, loop=loop))
+            loop.create_task(convert_epub(file_location, app=request.app))
 
         elif data.get('do') == 'set_conversion_unit':
             # get conversion unit
