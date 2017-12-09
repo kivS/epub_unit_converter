@@ -6,6 +6,7 @@ import logging.config
 import textwrap
 import os
 import warnings
+from typing import List
 
 # Report all mistakes managing asynchronous resources.
 warnings.simplefilter('always', ResourceWarning)
@@ -14,11 +15,8 @@ warnings.simplefilter('always', ResourceWarning)
 # https://aiohttp.readthedocs.io/en/stable/web_reference.html#aiohttp.web.run_app
 SERVER = {
     'port': 7000,
+    'print': None
 }
-SERVER['print'] = print(f'''
-    ======== Running on http://localhost:{SERVER.get("port", 7000)} ========
-                    (Press CTRL+C to quit)
-''')
 
 
 # Logging settings
@@ -122,4 +120,4 @@ logging.config.dictConfig(LOGGING)
 
 
 # File extensions inside EPUB files that are targeted for conversion
-ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS = ['html', 'xhtml']
+ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS: List[str] = ['html', 'xhtml']

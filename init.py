@@ -14,12 +14,13 @@ import io
 import zipfile
 import re
 import pint
+from typing import List, Dict, Union, Any
 
 
 FLAGS = re.VERBOSE | re.IGNORECASE | re.MULTILINE
 
 
-def build_regexp(unit_regexp):
+def build_regexp(unit_regexp: str):
     return re.compile(r'''
             (?P<value>       # group name: value
                 \d+
@@ -160,17 +161,17 @@ class ManipulateEpub:
     # string template for text inserted into epub with converted units
     conversion_result_template = '<span id="py_epub">{0}</span>'
 
-    def __init__(self, epub_file_name, epub_obj, app):
+    def __init__(self, epub_file_name: str, epub_obj: io.BytesIO, app) -> None:
         self.epub_file_name = epub_file_name
         self.epub_obj = epub_obj
         # files in epub that will be processed
-        self.files_in_epub = []
-        self.conversion_unit = app.get('conversion_unit')
+        self.files_in_epub: List[Dict[str, Union[str, int]]] = []
+        self.conversion_unit: str = app.get('conversion_unit')
         self.logger = logging.getLogger('app')
-        self.tag = f'Epub:[{epub_file_name}] | -'
-        # add epub container containing meta data and eventually the final epub file into epubs list
+        self.tag: str = f'Epub:[{epub_file_name}] | -'
+        # add epub container containing meta data and eventually the final epub file
         # set number of the counter of the changes made to the epub's contents to 0
-        self.epub_container = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0})
+        self.epub_container: Dict[str, Union[int, bytes]] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0})
 
         self.log_info('Starting...')
 
@@ -223,11 +224,11 @@ class ManipulateEpub:
                             self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
 
                         # if conversion already took place lets replace it
-                        span_start_index = file['content'].find('<span id="py_epub">', regexp.end())
+                        span_start_index: int = file['content'].find('<span id="py_epub">', regexp.end())
 
                         if span_start_index != -1:
                             # get the index of the start of '</span'> + 7 which is the length of it
-                            span_end_index = file['content'].find('</span>', span_start_index) + 7
+                            span_end_index: int = file['content'].find('</span>', span_start_index) + 7
 
                             # perform the replacement
                             file['content'] = file['content'][:span_start_index] + converted_unit_text + file['content'][span_end_index:]
@@ -262,7 +263,7 @@ class ManipulateEpub:
         self.epub_obj.close()
         self.log_info('All done, final epub saved!')
 
-    def format_unit(self, converted_unit, convertsTo):
+    def format_unit(self, converted_unit: Any, convertsTo: str) -> str:
         '''
             given a converted_unit object & the unit it converts to,
             return a string where the value is rounded.
@@ -270,7 +271,7 @@ class ManipulateEpub:
         precision_of_digits = 2
         rounded_magnitude = round(converted_unit.magnitude, precision_of_digits)
         # add dynamic sapce depending on the length of the result unit
-        text_separator = '' if len(convertsTo) < 2 else ' '
+        text_separator = '' if len(convertsTo) < 3 else ' '
 
         return f'{rounded_magnitude}{text_separator}{convertsTo}'
 
@@ -281,21 +282,21 @@ class ManipulateEpub:
         self.logger.error(f'{self.tag} {msg}')
 
 
-async def convert_epub(file_name, loop=None, app=None):
+async def convert_epub(file_location: str, loop=None, app=None):
     ''' .... '''
     ws = app.get('client')
     log = logging.getLogger('app')
 
-    if not os.path.exists(file_name):
-        ws.send_str(f'File not found: {file_name}')
+    if not os.path.exists(file_location):
+        ws.send_str(f'File not found: {file_location}')
     else:
         # open file
-        log.debug(f'opening file: [{file_name}]')
-        async with aiofiles.open(file_name, 'rb') as f:
+        log.debug(f'opening file: [{file_location}]')
+        async with aiofiles.open(file_location, 'rb') as f:
             file_bin = await f.read()
 
         # get epub name of out the path & remove extension
-        epub_name = os.path.basename(file_name)
+        epub_name = os.path.basename(file_location)
         epub_name, _ = os.path.splitext(epub_name)
 
         # pass epub bin stream into class responsable for transforming epub
@@ -334,14 +335,14 @@ async def ws_handler(request):
         log.debug(f'Client sent: {msg}')
 
         # convert data to json
-        data = json.loads(msg.data)
+        data: Dict[str, Union[str, Dict]] = json.loads(msg.data)
 
         # handle messages
         if data.get('do') == 'convert_epub':
-            file_name = data.get('with')
+            file_location = data.get('with')
 
             # schedule task for converting epub
-            loop.create_task(convert_epub(file_name, app=request.app, loop=loop))
+            loop.create_task(convert_epub(file_location, app=request.app, loop=loop))
 
         elif data.get('do') == 'set_conversion_unit':
             # get conversion unit
@@ -387,10 +388,15 @@ async def init():
 
 if __name__ == "__main__":
 
-    UREG = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
+    UREG: pint.UnitRegistry = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
 
     loop = asyncio.get_event_loop()
     app = loop.run_until_complete(init())
+
+    print(f'''
+        ======== Running on http://localhost:{config.SERVER.get("port", 7000)} ========
+                        (Press CTRL+C to quit)
+    ''')
 
     # start web server with custom configs
     web.run_app(app, **config.SERVER)
