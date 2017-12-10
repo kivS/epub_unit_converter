@@ -205,6 +205,9 @@ class ManipulateEpub:
                 regexp_result = list(unit['regexp'].finditer(file['content']))
 
                 if len(regexp_result) > 0:
+                    # let's chill for a moment
+                    await asyncio.sleep(0)
+
                     self.log_info(f'Regexp result: {regexp_result}')
 
                     # go over each regexp result on current file
