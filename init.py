@@ -271,7 +271,7 @@ class ManipulateEpub:
         precision_of_digits = 2
         rounded_magnitude = round(converted_unit.magnitude, precision_of_digits)
         # add dynamic sapce depending on the length of the result unit
-        text_separator = '' if len(convertsTo) < 3 else ' '
+        text_separator = '' if len(convertsTo) < 2 else ' '
 
         return f'{rounded_magnitude}{text_separator}{convertsTo}'
 
