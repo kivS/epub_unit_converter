@@ -5,7 +5,7 @@
 import logging.config
 import textwrap
 import os
-from typing import List
+from typing import List, Dict
 import argparse
 
 
@@ -18,7 +18,7 @@ SERVER = {
 
 
 # Logging settings
-
+#
 # create logs folder
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -26,7 +26,7 @@ if not os.path.exists('logs'):
 # allocate 1MB to each log file
 MAX_FILE_SIZE_IN_BYTES = 1 * 1024 * 1024
 
-LOGGING = {
+LOGGING: Dict = {
     "version": 1,
     "disable_existing_loggers": "True",
     "formatters": {
