@@ -14,6 +14,8 @@ import io
 import zipfile
 import re
 import pint
+import warnings
+
 from typing import List, Dict, Union, Any
 
 
@@ -378,19 +380,31 @@ async def init():
 
 if __name__ == "__main__":
 
-    UREG: pint.UnitRegistry = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
-
     loop = asyncio.get_event_loop()
+
+    # get parsed commandline arguments
+    args = config.ARGS_PARSER.parse_args()
+
+    if args.debug:
+
+        # set loop debug
+        loop.set_debug(True)
+
+        # Report all mistakes managing asynchronous resources.
+        warnings.simplefilter('always', ResourceWarning)
+
+        # set all loggers to debug level
+        for logger_name in config.LOGGING['loggers'].keys():
+            logging.getLogger(logger_name).setLevel(logging.DEBUG)
+
     app = loop.run_until_complete(init())
+
+    UREG: pint.UnitRegistry = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
 
     print(f'''
         ======== Running on http://localhost:{config.SERVER.get("port", 7000)} ========
                         (Press CTRL+C to quit)
     ''')
-
-    # debug mode
-    for logger_name in config.LOGGING['loggers'].keys():
-        logging.getLogger(logger_name).setLevel(logging.DEBUG)
 
     # start web server with custom configs
     web.run_app(app, **config.SERVER)

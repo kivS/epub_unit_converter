@@ -5,11 +5,9 @@
 import logging.config
 import textwrap
 import os
-import warnings
 from typing import List
+import argparse
 
-# Report all mistakes managing asynchronous resources.
-warnings.simplefilter('always', ResourceWarning)
 
 # SERVER params
 # https://aiohttp.readthedocs.io/en/stable/web_reference.html#aiohttp.web.run_app
@@ -115,3 +113,18 @@ logging.config.dictConfig(LOGGING)
 
 # File extensions inside EPUB files that are targeted for conversion
 ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS: List[str] = ['html', 'xhtml']
+
+
+# Arguments parser
+# define the parser
+ARGS_PARSER = argparse.ArgumentParser(
+    description='Epub Unit Converter'
+)
+# add arguments
+ARGS_PARSER.add_argument(
+    '-d', '--debug',
+    dest='debug',
+    help='Activate debug mode',
+    default=False,
+    action='store_true'
+)
