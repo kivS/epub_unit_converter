@@ -51,40 +51,34 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "simple"
         },
         "app_file": {
-            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/app.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_access_file": {
-            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_access.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_web_file": {
-            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_web.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "aiohttp_websocket_file": {
-            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/aiohttp_websocket.log",
             "formatter": "detailed",
             "maxBytes": MAX_FILE_SIZE_IN_BYTES
         },
         "asyncio_file": {
-            "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/asyncio.log",
             "formatter": "detailed",
@@ -94,23 +88,23 @@ LOGGING = {
     "loggers": {
         "asyncio": {
             "handlers": ["console", "asyncio_file"],
-            "level": "DEBUG"
+            "level": "ERROR"
         },
         "aiohttp.access": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "handlers": ["console", "aiohttp_access_file"]
 
         },
         "aiohttp.web": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "handlers": ["console", "aiohttp_web_file"]
         },
         "aiohttp.websocket": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "handlers": ["console", "aiohttp_websocket_file"]
         },
         "app": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "handlers": ["console", "app_file"]
         }
     }

@@ -388,5 +388,9 @@ if __name__ == "__main__":
                         (Press CTRL+C to quit)
     ''')
 
+    # debug mode
+    for logger_name in config.LOGGING['loggers'].keys():
+        logging.getLogger(logger_name).setLevel(logging.DEBUG)
+
     # start web server with custom configs
     web.run_app(app, **config.SERVER)
