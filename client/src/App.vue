@@ -1,20 +1,19 @@
-<template>
-  <div id="app">
-    <img src="./assets/logo.png">
-    <HelloWorld/>
-  </div>
-</template>
-
 <script>
-import HelloWorld from './components/HelloWorld'
+import fileUploader from './components/file-uploader'
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    fileUploader
   }
 }
 </script>
+
+<template>
+  <div id="app">
+    <file-uploader></file-uploader>
+  </div>
+</template>
 
 <style>
 #app {
