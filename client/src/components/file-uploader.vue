@@ -28,7 +28,7 @@
             // clean files from dataTransfer object
             let dt = ev.dataTransfer
 
-            if(dt.items){
+            if(dt.items && dt.items.length > 0){
                 for (var i = 0; i < dt.items.length; i++) {
                     dt.items.remove(i)
                 }
@@ -37,11 +37,8 @@
             }
         },
         handle_click: function(e){
-            console.log('dropzone area clicked!')
-
             // emit click event on file input
             this.$refs.file_input.click()
-
         },
         handle_file_input_change: function(e){
             let files = e.target.files

@@ -5,6 +5,9 @@ import App from './App'
 
 Vue.config.productionTip = false
 
+window.BUS = new Vue()
+window.WS = new WebSocket('ws://localhost:7000/wakey_wakey')
+
 /* eslint-disable */
 
 /* eslint-disable no-new */
@@ -15,17 +18,7 @@ new Vue({
 })
 
 // 
-window.BUS = new Vue()
-window.WS = new WebSocket('ws://localhost:7000/wakey_wakey')
 
-const ws = window.WS
-
-ws.onmessage = e =>{
+WS.onmessage = e =>{
     console.log(e)
 }
-
-ws.onopen = function (event) {
-   // set covertion type
-   ws.send(JSON.stringify({"do": 'set_conversion_unit', "with": "imperial"}))
-}
-
