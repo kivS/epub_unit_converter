@@ -49,11 +49,31 @@
         },
 
         processFile: function(file){
-            console.log('Processing file:', file)
+            /*console.log('Processing file:', file)*/
 
             if(file.type != 'application/epub+zip'){
                 console.error('File not supported!')
                 return
+            }
+
+            // load contents of file
+            let f = new FileReader()
+            f.readAsDataURL(file)
+            f.onerror = e =>{
+                console.error(e)
+            }
+            f.onload = e =>{
+                // create epub object
+                const epub = {
+                    name: file.name,
+                    bin_data: e.target.result
+                }
+
+                /*console.log('epub data:',epub)
+                return*/
+
+                // send epub for further processing
+                BUS.$emit('add_epub_file', epub)
             }
         }
     }

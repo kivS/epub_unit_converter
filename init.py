@@ -15,6 +15,7 @@ import zipfile
 import re
 import pint
 import warnings
+import base64
 
 from typing import List, Dict, Union, Any
 
@@ -274,31 +275,21 @@ class ManipulateEpub:
         self.logger.error(f'{self.tag} {msg}')
 
 
-async def convert_epub(file_location: str, app=None):
+async def convert_epub(file, app=None):
     ''' .... '''
-    ws = app.get('client')
-    log = logging.getLogger('app')
 
-    if not os.path.exists(file_location):
-        ws.send_str(f'File not found: {file_location}')
-    else:
-        # open file
-        log.debug(f'opening file: [{file_location}]')
-        async with aiofiles.open(file_location, 'rb') as f:
-            file_bin = await f.read()
+    # decode epub binary from base64 and remove url metadata(len = 33): data:application/epub+zip;base64,
+    # and then load epub binary into memory
+    epub_bin = io.BytesIO(base64.b64decode(file['bin_data'][33:]))
 
-        # get epub name of out the path & remove extension
-        epub_name = os.path.basename(file_location)
-        epub_name, _ = os.path.splitext(epub_name)
+    # pass epub bin stream into class responsable for transforming epub
+    transform_epub = ManipulateEpub(file['name'], epub_bin, app)
 
-        # pass epub bin stream into class responsable for transforming epub
-        transform_epub = ManipulateEpub(epub_name, io.BytesIO(file_bin), app)
+    # clean up
+    del file
 
-        # clean up
-        del f, file_bin
-
-        # start epub transformations
-        await transform_epub.start()
+    # start epub transformations
+    await transform_epub.start()
 
 
 async def ws_handler(request):
@@ -324,17 +315,16 @@ async def ws_handler(request):
 
     # go over received message
     async for msg in ws:
-        log.debug(f'Client sent: {msg}')
+        log.debug(f'Client sent: {msg}'[:300])
 
         # convert data to json
         data: Dict[str, Union[str, Dict]] = json.loads(msg.data)
 
         # handle messages
         if data.get('do') == 'convert_epub':
-            file_location = data.get('with')
-
+            file = data.get('with')
             # schedule task for converting epub
-            loop.create_task(convert_epub(file_location, app=request.app))
+            loop.create_task(convert_epub(file, app=request.app))
 
         elif data.get('do') == 'set_conversion_unit':
             # get conversion unit
