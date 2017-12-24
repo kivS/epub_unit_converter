@@ -1,6 +1,11 @@
 <script>
 import fileUploader from './components/file-uploader'
 import unitSelector from './components/unit-selector'
+import toast from 'izitoast'
+import 'izitoast/dist/css/iziToast.min.css'
+
+// set izitoast as global
+window.TOAST = toast
 
 export default {
   name: 'app',

@@ -52,7 +52,10 @@
             /*console.log('Processing file:', file)*/
 
             if(file.type != 'application/epub+zip'){
-                console.error('File not supported!')
+                /*console.error('File not supported!')*/
+                TOAST.error({
+                    message: `${file.name} is not supported. Epub files only.`
+                })
                 return
             }
 
