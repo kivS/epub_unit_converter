@@ -175,6 +175,7 @@ class ManipulateEpub:
         # add epub container containing meta data and eventually the final epub file
         # set number of the counter of the changes made to the epub's contents to 0
         self.epub_container: Dict[str, Union[int, bytes]] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0})
+        self.ws = app['client']
 
         self.log_info('Starting...')
 
@@ -191,7 +192,7 @@ class ManipulateEpub:
                 # ignore folders
                 if file.is_dir():
                     continue
-                # ignore files whose extension in not in the allowed extensions list
+                # ignore files whose extension is not in the allowed extensions list
                 *_, extension = file.filename.split('.')
                 if extension not in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
                     continue
@@ -254,6 +255,16 @@ class ManipulateEpub:
         self.epub_container['final_epub'] = self.epub_obj.getvalue()
         # close epub_obj stream
         self.epub_obj.close()
+
+        # notify user that the epub is done
+        self.ws.send_json({
+            'do': 'notify_epub_conversion_completed',
+            'with': {
+                'name': self.epub_file_name,
+                'num_of_changes': self.epub_container.get('num_of_content_changes')
+            }
+        })
+
         self.log_info('All done, final epub saved!')
 
     def format_unit(self, converted_unit: Any, convertsTo: str) -> str:

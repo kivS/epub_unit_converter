@@ -22,7 +22,7 @@ export default {
     })
 
     BUS.$on('add_epub_file', epub =>{
-      console.log('adding new epub file:', epub)
+      /*console.log('adding new epub file:', epub)*/
 
       // add epub to epubs object
       let epub_to_add = {}
