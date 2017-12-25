@@ -24,10 +24,20 @@ export default {
     BUS.$on('set_conversion_unit', unit =>{
       this.conversion_unit = unit
       WS.send(JSON.stringify({'do': 'set_conversion_unit', 'with': unit}))
+      console.log('conversion unit set to:', unit);
     })
 
     BUS.$on('add_epub_file', epub =>{
       console.log('adding new epub file:', epub)
+
+      // if file is already converted or in process
+      if(this.epubs[epub.name]){
+        TOAST.warning({
+          message: `File already added.`,
+          timeout: 2000
+        })
+        return
+      }
 
       // add epub to epubs object
       let epub_to_add = {}
