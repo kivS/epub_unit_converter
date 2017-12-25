@@ -30,16 +30,7 @@ WS.onmessage = e =>{
     if(data){
         switch(data.do){
             case 'notify_epub_conversion_completed':
-                if(data.with.num_of_changes == 0){
-                    TOAST.info({
-                        message:`No conversion needed for ${data.with.name}..`
-                    })
-
-                }else{
-                    TOAST.success({
-                        message: `${data.with.name} conversion completed with ${data.with.num_of_changes} change(s)`
-                    })
-                }
+                BUS.$emit('epub_conversion_completed', data.with)
             break
         }
     } 

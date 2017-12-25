@@ -20,6 +20,13 @@ export default {
     }
   },
 
+  methods:{
+    download_epub: function(name){
+      console.log('downloading:', name);
+      location.replace(`http://localhost:7000/download_epub/${name}`)
+    }
+  },
+
   mounted: function(){
     BUS.$on('set_conversion_unit', unit =>{
       this.conversion_unit = unit
@@ -42,12 +49,28 @@ export default {
       // add epub to epubs object
       let epub_to_add = {}
       epub_to_add[epub.name] = {
-        ready: 0
+        ready: false
       }
       this.epubs = Object.assign({}, this.epubs, epub_to_add)
 
       // send epub to backend
       WS.send(JSON.stringify({"do": 'convert_epub', "with": epub}))
+    })
+
+    BUS.$on('epub_conversion_completed', epub =>{
+      if(epub.num_of_changes == 0){
+          TOAST.info({
+              message:`No conversion needed for ${epub.name}..`
+          })
+
+      }else{
+          TOAST.success({
+              message: `${epub.name} conversion completed with ${epub.num_of_changes} change(s)`
+          })
+      }
+
+      // set epub as ready
+      this.epubs[epub.name].ready = true
     })
   }
 }
@@ -57,6 +80,19 @@ export default {
   <div id="app">
     <unit-selector></unit-selector>
     <file-uploader></file-uploader>
+
+    <div>
+      <div class="epub" v-for="(epub,epub_name,index) in epubs" :key="index">
+        <p>{{epub_name}}</p>
+
+        <button v-if="epub.ready" @click="download_epub(epub_name)">Download</button>
+        <span v-else>
+          converting...
+        </span>
+
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -68,5 +104,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+.epub{
+  border: 1px solid #000000;
+  margin: 4px 0;
+  padding: 4px 0;
 }
 </style>

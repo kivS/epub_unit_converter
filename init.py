@@ -286,7 +286,7 @@ class ManipulateEpub:
         self.logger.error(f'{self.tag} {msg}')
 
 
-async def convert_epub(file, app=None):
+async def convert_epub(file: dict, app=None):
     ''' .... '''
 
     # decode epub binary from base64 and remove url metadata(len = 33): data:application/epub+zip;base64,
@@ -353,6 +353,17 @@ async def index_handler(request):
     return web.FileResponse('./index.html')
 
 
+async def epub_download_handler(request):
+    epub_name = request.match_info.get('epub_name')
+
+    epub = request.app.get('epubs').get(epub_name)
+
+    if not epub_name or not epub:
+        return web.Response(text='nope')
+
+    return web.Response(body=epub.get('final_epub'), content_type='application/epub+zip')
+
+
 async def on_shutdown(app):
     ''' On app shutdown '''
 
@@ -372,6 +383,7 @@ async def init():
     # routes
     app.router.add_get('/', index_handler)
     app.router.add_get('/wakey_wakey', ws_handler)
+    app.router.add_get('/download_epub/{epub_name}', epub_download_handler)
 
     # signals
     app.on_shutdown.append(on_shutdown)
