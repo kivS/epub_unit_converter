@@ -3,8 +3,6 @@
     name: 'file-uploader',
     methods:{
         handle_on_drop: function(e){
-            /*console.log(e)*/
-
             // datatranfer object
             const dt = e.dataTransfer
 
@@ -41,18 +39,21 @@
             this.$refs.file_input.click()
         },
         handle_file_input_change: function(e){
+            console.log('input change event:', e)
             let files = e.target.files
 
             for (var i = 0; i < files.length; i++) {
                 this.processFile(files[i])
             }
+
+            // reset input value 
+            e.target.value = null
         },
 
         processFile: function(file){
-            /*console.log('Processing file:', file)*/
+            console.log('Processing file:', file)
 
             if(file.type != 'application/epub+zip'){
-                /*console.error('File not supported!')*/
                 TOAST.error({
                     message: `${file.name} is not supported. Epub files only.`
                 })
