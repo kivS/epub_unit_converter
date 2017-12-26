@@ -20,17 +20,21 @@ new Vue({
 // handle messages from backend conversor
 WS.onmessage = e =>{
     let data = null
-
     try{
         data = JSON.parse(e.data)
     }catch(err){
         console.log('Unstructered Message from server:', e.data)
     }
-      
+
     if(data){
+        console.log('Msg from server:', data);
         switch(data.do){
             case 'notify_epub_conversion_completed':
                 BUS.$emit('epub_conversion_completed', data.with)
+            break
+
+            case 'show_current_epubs':
+                BUS.$emit('show_current_epubs', data.with)
             break
         }
     } 

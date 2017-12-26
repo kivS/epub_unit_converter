@@ -174,7 +174,7 @@ class ManipulateEpub:
         self.tag: str = f'Epub:[{epub_file_name}] | -'
         # add epub container containing meta data and eventually the final epub file
         # set number of the counter of the changes made to the epub's contents to 0
-        self.epub_container: Dict[str, Union[int, bytes]] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0})
+        self.epub_container: Dict[str, Union[int, bytes]] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0, 'ready': False})
         self.ws = app['client']
 
         self.log_info('Starting...')
@@ -253,6 +253,7 @@ class ManipulateEpub:
 
         # save final epub
         self.epub_container['final_epub'] = self.epub_obj.getvalue()
+        self.epub_container.update({'ready': True})
         # close epub_obj stream
         self.epub_obj.close()
 
@@ -324,6 +325,14 @@ async def ws_handler(request):
     log.debug('Client has connected')
     ws.send_str('Well hello there Client hero!')
 
+    # if we still have epubs in memory let's make a dict of the epub and send it to the client
+    current_epubs: dict = {epub_name: {'ready': epub.get('ready')} for (epub_name, epub) in request.app.get('epubs').items()}
+    if len(current_epubs) > 0:
+        ws.send_json({
+            'do': 'show_current_epubs',
+            'with': current_epubs
+        })
+
     # go over received message
     async for msg in ws:
         log.debug(f'Client sent: {msg}'[:300])
@@ -344,6 +353,9 @@ async def ws_handler(request):
             request.app['conversion_unit'] = unit_system
             log.debug(f'Conversion unit set to {unit_system}')
 
+        elif data.get('do') == 'remove_epub':
+            del request.app['epubs'][data.get('with')]
+
     log.debug('Client has disconnected')
     return ws
 
@@ -354,9 +366,9 @@ async def index_handler(request):
 
 
 async def epub_download_handler(request):
-    epub_name = request.match_info.get('epub_name')
+    epub_name: str = request.match_info.get('epub_name')
 
-    epub = request.app.get('epubs').get(epub_name)
+    epub: dict = request.app.get('epubs').get(epub_name)
 
     if not epub_name or not epub:
         return web.Response(text='nope')

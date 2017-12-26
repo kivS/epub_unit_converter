@@ -24,6 +24,11 @@ export default {
     download_epub: function(name){
       console.log('downloading:', name);
       location.replace(`http://localhost:7000/download_epub/${name}`)
+    },
+
+    remove_epub: function(name){
+      this.$delete(this.epubs, name)
+      WS.send(JSON.stringify({'do': 'remove_epub', 'with': name }))
     }
   },
 
@@ -35,7 +40,6 @@ export default {
     })
 
     BUS.$on('add_epub_file', epub =>{
-      console.log('adding new epub file:', epub)
 
       // if file is already converted or in process
       if(this.epubs[epub.name]){
@@ -45,6 +49,8 @@ export default {
         })
         return
       }
+
+      console.log('adding new epub file:', epub)
 
       // add epub to epubs object
       let epub_to_add = {}
@@ -72,6 +78,10 @@ export default {
       // set epub as ready
       this.epubs[epub.name].ready = true
     })
+
+    BUS.$on('show_current_epubs', epubs =>{
+       this.epubs = Object.assign({}, this.epubs, epubs)
+    })
   }
 }
 </script>
@@ -85,6 +95,7 @@ export default {
       <div class="epub" v-for="(epub,epub_name,index) in epubs" :key="index">
         <p>{{epub_name}}</p>
 
+        <button @click="remove_epub(epub_name)">delete</button>
         <button v-if="epub.ready" @click="download_epub(epub_name)">Download</button>
         <span v-else>
           converting...
