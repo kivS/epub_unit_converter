@@ -39,3 +39,10 @@ WS.onmessage = e =>{
         }
     } 
 }
+
+WS.onerror = e =>{
+    console.error('WS error:', e);
+    TOAST.error({
+        message:'Error with the cli. Make sure it\'s running.',
+    })
+}
