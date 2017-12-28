@@ -242,20 +242,32 @@ class ManipulateEpub:
 
     async def save_final_epub(self):
         ''' Update epub file with changes made by conversion & save final epub to globals '''
-        with zipfile.ZipFile(self.epub_obj, 'w') as epub:
-            for file in self.files_in_epub:
-                # ignore files whose content has not changed
-                if len(file['content']) == file['content_original_size']:
-                    continue
 
-                # replace file in epub(zipfile)
-                epub.writestr(file['name'], file['content'])
+        output_epub_obj: bytes = io.BytesIO()
+
+        with zipfile.ZipFile(self.epub_obj, 'r') as input_epub:
+            with zipfile.ZipFile(output_epub_obj, 'w') as output_epub:
+
+                # add files where convertion took place into the final epub
+                for file in self.files_in_epub:
+                    output_epub.writestr(file['name'], file['content'])
+
+                # add rest of files from epub into the final one
+                for file in input_epub.filelist:
+                    # ignore files where conversion took place
+                    *_, extension = file.filename.split('.')
+                    if extension in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
+                        continue
+
+                    # copy rest of files to final epub file
+                    output_epub.writestr(file.filename, input_epub.read(file.filename))
 
         # save final epub
-        self.epub_container['final_epub'] = self.epub_obj.getvalue()
+        self.epub_container['final_epub'] = output_epub_obj.getvalue()
         self.epub_container.update({'ready': True})
-        # close epub_obj stream
+        # close epub objects stream
         self.epub_obj.close()
+        output_epub_obj.close()
 
         # notify user that the epub is done
         self.ws.send_json({
