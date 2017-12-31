@@ -157,6 +157,12 @@ UNIT_CONVERSION_TO = {
     ]
 }
 
+PREVIOUS_CONVERSIONS_REGEXP = re.compile(r'''
+    <span \s id="py_epub">   # begining of span tag
+    .+                       # converstion text inside span tag
+    </span>                  # end of span tag
+''', FLAGS)
+
 
 class ManipulateEpub:
     ''' Class reponsable for transforming the epub file '''
@@ -182,8 +188,18 @@ class ManipulateEpub:
     async def start(self):
         ''' Start conversion manipulations on epub file'''
         await self.get_epub_contents()
+        await self.remove_previous_conversions()
         await self.convert_epub_contents()
         await self.save_final_epub()
+
+    async def remove_previous_conversions(self):
+        ''' go over list of the files in the epub; match & remove previous conversions '''
+        for file in self.files_in_epub:
+            # replace content of file if it has previous convertions text
+            removed_previous_conversions = PREVIOUS_CONVERSIONS_REGEXP.sub('', file['content'])
+            if len(removed_previous_conversions) != file['content_original_size']:
+                self.log_info('removing previous conversions...')
+                file['content'] = removed_previous_conversions
 
     async def get_epub_contents(self):
         ''' go over each file in the epub & store it in a list with its content '''
@@ -268,6 +284,8 @@ class ManipulateEpub:
         # close epub objects stream
         self.epub_obj.close()
         output_epub_obj.close()
+
+        del self.epub_obj
 
         # notify user that the epub is done
         self.ws.send_json({
