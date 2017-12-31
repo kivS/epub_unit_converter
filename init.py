@@ -168,7 +168,7 @@ class ManipulateEpub:
     ''' Class reponsable for transforming the epub file '''
 
     # string template for text inserted into epub with converted units
-    conversion_result_template = '<span id="py_epub">{0}</span>'
+    conversion_result_template = '<span id="py_epub">({0})</span>'
 
     def __init__(self, epub_file_name: str, epub_obj: io.BytesIO, app) -> None:
         self.epub_file_name = epub_file_name
