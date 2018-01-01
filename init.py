@@ -192,15 +192,6 @@ class ManipulateEpub:
         await self.convert_epub_contents()
         await self.save_final_epub()
 
-    async def remove_previous_conversions(self):
-        ''' go over list of the files in the epub; match & remove previous conversions '''
-        for file in self.files_in_epub:
-            # replace content of file if it has previous convertions text
-            removed_previous_conversions = PREVIOUS_CONVERSIONS_REGEXP.sub('', file['content'])
-            if len(removed_previous_conversions) != file['content_original_size']:
-                self.log_info('removing previous conversions...')
-                file['content'] = removed_previous_conversions
-
     async def get_epub_contents(self):
         ''' go over each file in the epub & store it in a list with its content '''
         with zipfile.ZipFile(self.epub_obj, 'r') as epub:
@@ -214,6 +205,15 @@ class ManipulateEpub:
                     continue
 
                 self.files_in_epub.append({'name': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
+
+    async def remove_previous_conversions(self):
+        ''' go over list of the files in the epub; match & remove previous conversions '''
+        for file in self.files_in_epub:
+            # replace content of file if it has previous convertions text
+            removed_previous_conversions = PREVIOUS_CONVERSIONS_REGEXP.sub('', file['content'])
+            if len(removed_previous_conversions) != file['content_original_size']:
+                self.log_info('removing previous conversions...')
+                file['content'] = removed_previous_conversions
 
     async def convert_epub_contents(self):
         ''' Go over the epub's files and search all unit regexps for the conversion_unit selected '''
