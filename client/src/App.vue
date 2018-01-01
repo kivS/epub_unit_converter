@@ -55,7 +55,8 @@ export default {
       // add epub to epubs object
       let epub_to_add = {}
       epub_to_add[epub.name] = {
-        ready: false
+        ready: false,
+        conversions: []
       }
       this.epubs = Object.assign({}, this.epubs, epub_to_add)
 
@@ -81,6 +82,10 @@ export default {
 
     BUS.$on('show_current_epubs', epubs =>{
        this.epubs = Object.assign({}, this.epubs, epubs)
+    })
+
+    BUS.$on('conversion_update', data =>{
+      this.epubs[data.file]['conversions'].push(data.conversion)
     })
   }
 }

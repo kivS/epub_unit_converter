@@ -180,7 +180,7 @@ class ManipulateEpub:
         self.tag: str = f'Epub:[{epub_file_name}] | -'
         # add epub container containing meta data and eventually the final epub file
         # set number of the counter of the changes made to the epub's contents to 0
-        self.epub_container: Dict[str, Union[int, bytes]] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0, 'ready': False})
+        self.epub_container: Dict[str, Any] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0, 'ready': False, 'conversions': []})
         self.ws = app['client']
 
         self.log_info('Starting...')
@@ -245,6 +245,20 @@ class ManipulateEpub:
                             # fill the string template with the converted & formated value with unit string
                             converted_unit_text = self.conversion_result_template.format(self.format_unit(converted_unit, unit["convertsTo"]))
                             self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
+
+                            # send convertion result to client
+                            converted_text_left_index = converted_unit_text.find('(') + 1  # +1 cuz match includes (
+                            converted_text_right_index = converted_unit_text.find(')')
+                            conversion_unit_text = 'Imperial <=> Metric' if self.conversion_unit == 'metric' else 'Metric <=> Imperial'
+                            result_text_to_client = f'{conversion_unit_text} | {regexp.group()} <=> {converted_unit_text[converted_text_left_index:converted_text_right_index]}'
+                            self.epub_container.get('conversions').append(result_text_to_client)
+                            self.ws.send_json({
+                                'do': 'notify_conversion_update',
+                                'with': {
+                                    'file': self.epub_file_name,
+                                    'conversion': result_text_to_client
+                                }
+                            })
 
                             # replace content with new string containing the converted unit
                             file['content'] = file['content'][:regexp.end()] + converted_unit_text + file['content'][regexp.end():]
@@ -356,7 +370,7 @@ async def ws_handler(request):
     ws.send_str('Well hello there Client hero!')
 
     # if we still have epubs in memory let's make a dict of the epub and send it to the client
-    current_epubs: dict = {epub_name: {'ready': epub.get('ready')} for (epub_name, epub) in request.app.get('epubs').items()}
+    current_epubs: dict = {epub_name: {'ready': epub.get('ready'), 'conversions': epub.get('conversions')} for (epub_name, epub) in request.app.get('epubs').items()}
     if len(current_epubs) > 0:
         ws.send_json({
             'do': 'show_current_epubs',

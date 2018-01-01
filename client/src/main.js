@@ -36,6 +36,10 @@ WS.onmessage = e =>{
             case 'show_current_epubs':
                 BUS.$emit('show_current_epubs', data.with)
             break
+
+            case 'notify_conversion_update':
+                BUS.$emit('conversion_update', data.with)
+            break
         }
     } 
 }
