@@ -16,7 +16,8 @@ export default {
   data: function(){
     return {
      conversion_unit: '',
-     epubs: {}
+     epubs: {},
+     show_conversions_for_epub: []
     }
   },
 
@@ -29,7 +30,17 @@ export default {
     remove_epub: function(name){
       this.$delete(this.epubs, name)
       WS.send(JSON.stringify({'do': 'remove_epub', 'with': name }))
+    },
+
+    handle_before_open_conversions: function(e){
+      // set list of conversions for selected epub
+      if(this.epubs[e.params]){
+        console.log('loading conversions...');
+        this.show_conversions_for_epub = this.epubs[e.params]['conversions']
+      }
+      
     }
+  
   },
 
   mounted: function(){
@@ -105,6 +116,7 @@ export default {
         <p>{{epub_name}}</p>
 
         <button @click="remove_epub(epub_name)">delete</button>
+        <button @click="$modal.show('conversions', epub_name)">Conversions</button>
         <button v-if="epub.ready" @click="download_epub(epub_name)">Download</button>
         <span v-else>
           converting...
@@ -113,6 +125,22 @@ export default {
       </div>
     </div>
 
+    <!-- List of conversions for selected epub file -->
+    <modal 
+      name="conversions" 
+      :draggable="false" 
+      :scrollable="true" 
+      :height="'auto'" 
+      @before-open="handle_before_open_conversions" 
+      @closed="show_conversions_for_epub = []"
+      >
+      <ul>
+        <p>List of conversions:</p>
+        <li v-for="(val, i) in show_conversions_for_epub" :key="i">
+          {{val}}
+        </li>
+      </ul>
+    </modal>
   </div>
 </template>
 
