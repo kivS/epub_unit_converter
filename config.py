@@ -128,3 +128,10 @@ ARGS_PARSER.add_argument(
     default=False,
     action='store_true'
 )
+ARGS_PARSER.add_argument(
+    '-rl', '--rm-logs',
+    dest='rm_logs',
+    help='Resets the logs',
+    default=False,
+    action='store_true'
+)

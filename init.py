@@ -11,6 +11,7 @@ import json
 import os
 import logging
 import io
+import shutil
 import zipfile
 import re
 import pint
@@ -473,6 +474,12 @@ if __name__ == "__main__":
         # set all loggers to debug level
         for logger_name in config.LOGGING['loggers'].keys():
             logging.getLogger(logger_name).setLevel(logging.DEBUG)
+
+    elif args.rm_logs:
+        print('Removing logs...')
+        if os.path.exists('logs'):
+            shutil.rmtree('logs')
+            exit()
 
     app = loop.run_until_complete(init())
 
