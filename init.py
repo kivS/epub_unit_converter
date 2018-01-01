@@ -377,6 +377,14 @@ async def ws_handler(request):
             'with': current_epubs
         })
 
+    # and let's do the same for the conversion_unit
+    current_conversion_unit = request.app.get('conversion_unit')
+    if current_conversion_unit:
+        ws.send_json({
+            'do': 'show_current_conversion_unit',
+            'with': current_conversion_unit
+        })
+
     # go over received message
     async for msg in ws:
         log.debug(f'Client sent: {msg}'[:300])

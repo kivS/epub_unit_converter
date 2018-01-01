@@ -40,6 +40,10 @@ WS.onmessage = e =>{
             case 'notify_conversion_update':
                 BUS.$emit('conversion_update', data.with)
             break
+
+            case 'show_current_conversion_unit':
+                BUS.$emit('notify_current_conversion_unit', data.with)
+            break
         }
     } 
 }

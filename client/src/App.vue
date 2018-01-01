@@ -87,6 +87,10 @@ export default {
     BUS.$on('conversion_update', data =>{
       this.epubs[data.file]['conversions'].push(data.conversion)
     })
+
+    BUS.$on('notify_current_conversion_unit', unit =>{
+      this.conversion_unit = unit
+    })
   }
 }
 </script>
