@@ -13,6 +13,8 @@ import logging
 import io
 import shutil
 import zipfile
+import webbrowser
+from concurrent.futures import ThreadPoolExecutor
 import re
 import pint
 import warnings
@@ -414,8 +416,12 @@ async def ws_handler(request):
 
 
 async def index_handler(request):
-    ''' Returns index page '''
-    return web.FileResponse('./index.html')
+    ''' Returns client page (dev or prod version) '''
+
+    if args.dev:
+        return web.HTTPFound(config.CLIENT_DEV_ADDR)
+    else:
+        return web.FileResponse('./client/dist/index.html')
 
 
 async def epub_download_handler(request):
@@ -427,6 +433,12 @@ async def epub_download_handler(request):
         return web.Response(text='nope')
 
     return web.Response(body=epub.get('final_epub'), content_type='application/epub+zip')
+
+
+async def on_startup(app):
+    pass
+    # with ThreadPoolExecutor(max_workers=2) as th_e:
+    #     loop.run_in_executor(th_e, webbrowser.open, 'http://localhost:8080/')
 
 
 async def on_shutdown(app):
@@ -447,11 +459,13 @@ async def init():
 
     # routes
     app.router.add_get('/', index_handler)
+    app.router.add_static('/static/', './client/dist/static')
     app.router.add_get('/wakey_wakey', ws_handler)
     app.router.add_get('/download_epub/{epub_name}', epub_download_handler)
 
     # signals
     app.on_shutdown.append(on_shutdown)
+    app.on_startup.append(on_startup)
 
     return app
 
@@ -463,7 +477,7 @@ if __name__ == "__main__":
     # get parsed commandline arguments
     args = config.ARGS_PARSER.parse_args()
 
-    if args.debug:
+    if args.dev:
 
         # set loop debug
         loop.set_debug(True)
