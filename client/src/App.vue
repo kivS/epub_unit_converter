@@ -23,7 +23,7 @@ export default {
 
   methods:{
     handle_before_open_conversions: function(e){
-      // set list of conversions for selected epub
+      // set list of conversions for selected epub so modal can acess it
       if(this.epubs[e.params]){
         console.log('loading conversions...');
         this.show_conversions_for_epub = this.epubs[e.params]['conversions']
@@ -81,7 +81,7 @@ export default {
           TOAST.success({
               message: `${epub.name} conversion completed with ${epub.num_of_changes} change(s)`
           })
-          
+
           // set epub as ready
           this.epubs[epub.name].ready = true
       }
@@ -121,18 +121,18 @@ export default {
     <!-- List of conversions for selected epub file -->
     <modal 
       name="conversions" 
-      :draggable="false" 
+      :draggable="true" 
       :scrollable="true" 
       :height="'auto'" 
       @before-open="handle_before_open_conversions" 
       @closed="show_conversions_for_epub = []"
       >
-      <ul>
-        <p>List of conversions:</p>
-        <li v-for="(val, i) in show_conversions_for_epub" :key="i">
+      <div class="list_of_conversions">
+        <p class="title">List of conversions:</p>
+        <span class="list_items" v-for="(val, i) in show_conversions_for_epub" :key="i">
           {{val}}
-        </li>
-      </ul>
+        </span>
+      </div>
     </modal>
 
   </div>
@@ -194,4 +194,20 @@ export default {
     box-shadow: 1px 1px 1px 1px #adaaaa;
 }
 
+
+/* Conversion list modal */
+.list_of_conversions{
+  display: grid;
+}
+.list_of_conversions .title{
+  justify-self:center;
+  font-size: x-large;
+}
+.list_items{
+  padding: 8px;
+  text-align: center;
+}
+.list_items:nth-child(even){
+  background: #bdbcbc;
+}
 </style>
