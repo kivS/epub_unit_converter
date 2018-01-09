@@ -9,10 +9,13 @@ from typing import List, Dict
 import argparse
 
 
+CLIENT_DEV_ADDR = 'http://localhost:8080/'
+
 # SERVER params
 # https://aiohttp.readthedocs.io/en/stable/web_reference.html#aiohttp.web.run_app
 SERVER = {
     'port': 7000,
+    'host': '127.0.0.1',
     'print': None
 }
 
@@ -122,9 +125,16 @@ ARGS_PARSER = argparse.ArgumentParser(
 )
 # add arguments
 ARGS_PARSER.add_argument(
-    '-d', '--debug',
-    dest='debug',
-    help='Activate debug mode',
+    '-d', '--dev',
+    dest='dev',
+    help='Activate dev mode',
+    default=False,
+    action='store_true'
+)
+ARGS_PARSER.add_argument(
+    '-rl', '--rm-logs',
+    dest='rm_logs',
+    help='Resets the logs',
     default=False,
     action='store_true'
 )

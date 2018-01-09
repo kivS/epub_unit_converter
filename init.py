@@ -11,10 +11,14 @@ import json
 import os
 import logging
 import io
+import shutil
 import zipfile
+import webbrowser
+from concurrent.futures import ThreadPoolExecutor
 import re
 import pint
 import warnings
+import base64
 
 from typing import List, Dict, Union, Any
 
@@ -156,12 +160,18 @@ UNIT_CONVERSION_TO = {
     ]
 }
 
+PREVIOUS_CONVERSIONS_REGEXP = re.compile(r'''
+    <span \s id="py_epub">   # begining of span tag
+    .+                       # converstion text inside span tag
+    </span>                  # end of span tag
+''', FLAGS)
+
 
 class ManipulateEpub:
     ''' Class reponsable for transforming the epub file '''
 
     # string template for text inserted into epub with converted units
-    conversion_result_template = '<span id="py_epub">{0}</span>'
+    conversion_result_template = '<span id="py_epub">({0})</span>'
 
     def __init__(self, epub_file_name: str, epub_obj: io.BytesIO, app) -> None:
         self.epub_file_name = epub_file_name
@@ -173,13 +183,15 @@ class ManipulateEpub:
         self.tag: str = f'Epub:[{epub_file_name}] | -'
         # add epub container containing meta data and eventually the final epub file
         # set number of the counter of the changes made to the epub's contents to 0
-        self.epub_container: Dict[str, Union[int, bytes]] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0})
+        self.epub_container: Dict[str, Any] = app['epubs'].setdefault(epub_file_name, {'num_of_content_changes': 0, 'ready': False, 'conversions': []})
+        self.ws = app['client']
 
         self.log_info('Starting...')
 
     async def start(self):
         ''' Start conversion manipulations on epub file'''
         await self.get_epub_contents()
+        await self.remove_previous_conversions()
         await self.convert_epub_contents()
         await self.save_final_epub()
 
@@ -190,12 +202,21 @@ class ManipulateEpub:
                 # ignore folders
                 if file.is_dir():
                     continue
-                # ignore files whose extension in not in the allowed extensions list
+                # ignore files whose extension is not in the allowed extensions list
                 *_, extension = file.filename.split('.')
                 if extension not in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
                     continue
 
                 self.files_in_epub.append({'name': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
+
+    async def remove_previous_conversions(self):
+        ''' go over list of the files in the epub; match & remove previous conversions '''
+        for file in self.files_in_epub:
+            # replace content of file if it has previous convertions text
+            removed_previous_conversions = PREVIOUS_CONVERSIONS_REGEXP.sub('', file['content'])
+            if len(removed_previous_conversions) != file['content_original_size']:
+                self.log_info('removing previous conversions...')
+                file['content'] = removed_previous_conversions
 
     async def convert_epub_contents(self):
         ''' Go over the epub's files and search all unit regexps for the conversion_unit selected '''
@@ -228,6 +249,20 @@ class ManipulateEpub:
                             converted_unit_text = self.conversion_result_template.format(self.format_unit(converted_unit, unit["convertsTo"]))
                             self.log_info(f'Regexp Result: {regexp.group()} | Converts to: {converted_unit_text}')
 
+                            # send convertion result to client
+                            converted_text_left_index = converted_unit_text.find('(') + 1  # +1 cuz match includes (
+                            converted_text_right_index = converted_unit_text.find(')')
+                            conversion_unit_text = 'Imperial <=> Metric' if self.conversion_unit == 'metric' else 'Metric <=> Imperial'
+                            result_text_to_client = f'{conversion_unit_text} | {regexp.group()} <=> {converted_unit_text[converted_text_left_index:converted_text_right_index]}'
+                            self.epub_container.get('conversions').append(result_text_to_client)
+                            self.ws.send_json({
+                                'do': 'notify_conversion_update',
+                                'with': {
+                                    'file': self.epub_file_name,
+                                    'conversion': result_text_to_client
+                                }
+                            })
+
                             # replace content with new string containing the converted unit
                             file['content'] = file['content'][:regexp.end()] + converted_unit_text + file['content'][regexp.end():]
                             # add +1 to changes made to epub file
@@ -240,19 +275,44 @@ class ManipulateEpub:
 
     async def save_final_epub(self):
         ''' Update epub file with changes made by conversion & save final epub to globals '''
-        with zipfile.ZipFile(self.epub_obj, 'w') as epub:
-            for file in self.files_in_epub:
-                # ignore files whose content has not changed
-                if len(file['content']) == file['content_original_size']:
-                    continue
 
-                # replace file in epub(zipfile)
-                epub.writestr(file['name'], file['content'])
+        output_epub_obj: bytes = io.BytesIO()
+
+        with zipfile.ZipFile(self.epub_obj, 'r') as input_epub:
+            with zipfile.ZipFile(output_epub_obj, 'w') as output_epub:
+
+                # add files where convertion took place into the final epub
+                for file in self.files_in_epub:
+                    output_epub.writestr(file['name'], file['content'])
+
+                # add rest of files from epub into the final one
+                for file in input_epub.filelist:
+                    # ignore files where conversion took place
+                    *_, extension = file.filename.split('.')
+                    if extension in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
+                        continue
+
+                    # copy rest of files to final epub file
+                    output_epub.writestr(file.filename, input_epub.read(file.filename))
 
         # save final epub
-        self.epub_container['final_epub'] = self.epub_obj.getvalue()
-        # close epub_obj stream
+        self.epub_container['final_epub'] = output_epub_obj.getvalue()
+        self.epub_container.update({'ready': True})
+        # close epub objects stream
         self.epub_obj.close()
+        output_epub_obj.close()
+
+        del self.epub_obj
+
+        # notify user that the epub is done
+        self.ws.send_json({
+            'do': 'notify_epub_conversion_completed',
+            'with': {
+                'name': self.epub_file_name,
+                'num_of_changes': self.epub_container.get('num_of_content_changes')
+            }
+        })
+
         self.log_info('All done, final epub saved!')
 
     def format_unit(self, converted_unit: Any, convertsTo: str) -> str:
@@ -274,31 +334,21 @@ class ManipulateEpub:
         self.logger.error(f'{self.tag} {msg}')
 
 
-async def convert_epub(file_location: str, app=None):
+async def convert_epub(file: dict, app=None):
     ''' .... '''
-    ws = app.get('client')
-    log = logging.getLogger('app')
 
-    if not os.path.exists(file_location):
-        ws.send_str(f'File not found: {file_location}')
-    else:
-        # open file
-        log.debug(f'opening file: [{file_location}]')
-        async with aiofiles.open(file_location, 'rb') as f:
-            file_bin = await f.read()
+    # decode epub binary from base64 and remove url metadata(len = 33): data:application/epub+zip;base64,
+    # and then load epub binary into memory
+    epub_bin = io.BytesIO(base64.b64decode(file['bin_data'][33:]))
 
-        # get epub name of out the path & remove extension
-        epub_name = os.path.basename(file_location)
-        epub_name, _ = os.path.splitext(epub_name)
+    # pass epub bin stream into class responsable for transforming epub
+    transform_epub = ManipulateEpub(file['name'], epub_bin, app)
 
-        # pass epub bin stream into class responsable for transforming epub
-        transform_epub = ManipulateEpub(epub_name, io.BytesIO(file_bin), app)
+    # clean up
+    del file
 
-        # clean up
-        del f, file_bin
-
-        # start epub transformations
-        await transform_epub.start()
+    # start epub transformations
+    await transform_epub.start()
 
 
 async def ws_handler(request):
@@ -322,19 +372,34 @@ async def ws_handler(request):
     log.debug('Client has connected')
     ws.send_str('Well hello there Client hero!')
 
+    # if we still have epubs in memory let's make a dict of the epub and send it to the client
+    current_epubs: dict = {epub_name: {'ready': epub.get('ready'), 'conversions': epub.get('conversions')} for (epub_name, epub) in request.app.get('epubs').items()}
+    if len(current_epubs) > 0:
+        ws.send_json({
+            'do': 'show_current_epubs',
+            'with': current_epubs
+        })
+
+    # and let's do the same for the conversion_unit
+    current_conversion_unit = request.app.get('conversion_unit')
+    if current_conversion_unit:
+        ws.send_json({
+            'do': 'show_current_conversion_unit',
+            'with': current_conversion_unit
+        })
+
     # go over received message
     async for msg in ws:
-        log.debug(f'Client sent: {msg}')
+        log.debug(f'Client sent: {msg}'[:300])
 
         # convert data to json
         data: Dict[str, Union[str, Dict]] = json.loads(msg.data)
 
         # handle messages
         if data.get('do') == 'convert_epub':
-            file_location = data.get('with')
-
+            file = data.get('with')
             # schedule task for converting epub
-            loop.create_task(convert_epub(file_location, app=request.app))
+            loop.create_task(convert_epub(file, app=request.app))
 
         elif data.get('do') == 'set_conversion_unit':
             # get conversion unit
@@ -343,13 +408,37 @@ async def ws_handler(request):
             request.app['conversion_unit'] = unit_system
             log.debug(f'Conversion unit set to {unit_system}')
 
+        elif data.get('do') == 'remove_epub':
+            del request.app['epubs'][data.get('with')]
+
     log.debug('Client has disconnected')
     return ws
 
 
 async def index_handler(request):
-    ''' Returns index page '''
-    return web.FileResponse('./index.html')
+    ''' Returns client page (dev or prod version) '''
+
+    if args.dev:
+        return web.HTTPFound(config.CLIENT_DEV_ADDR)
+    else:
+        return web.FileResponse('./client/dist/index.html')
+
+
+async def epub_download_handler(request):
+    epub_name: str = request.match_info.get('epub_name')
+
+    epub: dict = request.app.get('epubs').get(epub_name)
+
+    if not epub_name or not epub:
+        return web.Response(text='nope')
+
+    return web.Response(body=epub.get('final_epub'), content_type='application/epub+zip')
+
+
+async def on_startup(app):
+    pass
+    # with ThreadPoolExecutor(max_workers=2) as th_e:
+    #     loop.run_in_executor(th_e, webbrowser.open, 'http://localhost:8080/')
 
 
 async def on_shutdown(app):
@@ -370,10 +459,13 @@ async def init():
 
     # routes
     app.router.add_get('/', index_handler)
+    app.router.add_static('/static/', './client/dist/static')
     app.router.add_get('/wakey_wakey', ws_handler)
+    app.router.add_get('/download_epub/{epub_name}', epub_download_handler)
 
     # signals
     app.on_shutdown.append(on_shutdown)
+    app.on_startup.append(on_startup)
 
     return app
 
@@ -385,7 +477,7 @@ if __name__ == "__main__":
     # get parsed commandline arguments
     args = config.ARGS_PARSER.parse_args()
 
-    if args.debug:
+    if args.dev:
 
         # set loop debug
         loop.set_debug(True)
@@ -396,6 +488,12 @@ if __name__ == "__main__":
         # set all loggers to debug level
         for logger_name in config.LOGGING['loggers'].keys():
             logging.getLogger(logger_name).setLevel(logging.DEBUG)
+
+    elif args.rm_logs:
+        print('Removing logs...')
+        if os.path.exists('logs'):
+            shutil.rmtree('logs')
+            exit()
 
     app = loop.run_until_complete(init())
 
