@@ -15,7 +15,7 @@ export default {
   },
   data: function(){
     return {
-     conversion_unit: '',
+     conversion_unit: 'metric',
      epubs: {},
      show_conversions_for_epub: []
     }
@@ -107,7 +107,7 @@ export default {
        <div class="project_name">
             <span>Epub Unit Converter</span>
        </div>
-       <unit-selector></unit-selector>
+       <unit-selector :conversion-unit="conversion_unit"></unit-selector>
     </div>
 
     <file-uploader :epubs="epubs"></file-uploader>
@@ -188,79 +188,4 @@ export default {
     box-shadow: 1px 1px 1px 1px #adaaaa;
 }
 
-
-
-/* DROPZONE AREA */
-.dropzone_area{
-    display: grid;
-    grid-template-rows: 200px auto;
-    background: #bdbdbd;
-    border-style: dashed;
-    border-color: #828282;
-}
-.dropzone_area:hover {
-    cursor: pointer;
-}
-.dropzone_text_hint{
-    align-self: center;
-    justify-self:center;
-
-    font-family: fantasy;
-    font-size: xx-large;
-    color: #e4e4e4;
-}
-.epub_list{
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: minmax(150px, auto);
-    grid-gap: 10px; 
-    margin: 10px;
-}
-.epub_list:hover {
-    cursor: auto;
-}
-.epub{
-    display: grid;
-
-    background: #e6e6e6;
-    border:1px solid white;
-
-}
-.epub .btns{
-    width: 24px;
-    height: 24px;
-}
-.epub .btns:hover{
-    cursor: pointer;
-    stroke: #00bcd4;
-}
-.epub .btns:active{
-    stroke: initial;
-}
-.epub .show_conversions{
-    grid-column-start: 1;
-    grid-row-start: 1;
-    margin: 4px;
-}
-.epub .delete{
-    grid-column-start: 2;
-    justify-self: end;
-    margin: 4px;
-}
-.epub .title{
-    grid-column-start: 1;
-    grid-column-end: 3;
-    justify-self: center;
-    padding: 10px;
-}
-.epub .download{
-    grid-column-start: 1;
-    grid-column-end: 3;
-    justify-self: center;
-}
-.epub .loader{
-    justify-self:center;
-    grid-column-start: 1;
-    grid-column-end: 3;
-}
 </style>
