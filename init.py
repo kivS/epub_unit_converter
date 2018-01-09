@@ -252,8 +252,7 @@ class ManipulateEpub:
                             # send convertion result to client
                             converted_text_left_index = converted_unit_text.find('(') + 1  # +1 cuz match includes (
                             converted_text_right_index = converted_unit_text.find(')')
-                            conversion_unit_text = 'Imperial <=> Metric' if self.conversion_unit == 'metric' else 'Metric <=> Imperial'
-                            result_text_to_client = f'{conversion_unit_text} | {regexp.group()} <=> {converted_unit_text[converted_text_left_index:converted_text_right_index]}'
+                            result_text_to_client = f'{regexp.group()} <=> {converted_unit_text[converted_text_left_index:converted_text_right_index]}'
                             self.epub_container.get('conversions').append(result_text_to_client)
                             self.ws.send_json({
                                 'do': 'notify_conversion_update',
