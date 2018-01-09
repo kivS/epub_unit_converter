@@ -10,9 +10,10 @@
 </script>
 
 <template>
-   <div>
-       <h3>Convert Ebook to</h3>
-       <button @click="set_conversion_unit('metric')">Metric System</button>
-       <button  @click="set_conversion_unit('imperial')">Imperial System</button>
-   </div>
+  <div class="menu">
+       <div class="menu_items">
+           <button @click="set_conversion_unit('metric')" title="Convert Units to Metric System" class="active">Metric</button>
+           <button @click="set_conversion_unit('imperial')" title="Convert Units to Imperial System">Imperial</button>
+       </div>
+  </div> 
 </template>

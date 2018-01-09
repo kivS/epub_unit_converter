@@ -22,16 +22,6 @@ export default {
   },
 
   methods:{
-    download_epub: function(name){
-      console.log('downloading:', name);
-      location.replace(`http://localhost:7000/download_epub/${name}`)
-    },
-
-    remove_epub: function(name){
-      this.$delete(this.epubs, name)
-      WS.send(JSON.stringify({'do': 'remove_epub', 'with': name }))
-    },
-
     handle_before_open_conversions: function(e){
       // set list of conversions for selected epub
       if(this.epubs[e.params]){
@@ -102,28 +92,25 @@ export default {
     BUS.$on('notify_current_conversion_unit', unit =>{
       this.conversion_unit = unit
     })
+
+    BUS.$on('remove_epub', name =>{
+      this.$delete(this.epubs, name)
+      WS.send(JSON.stringify({'do': 'remove_epub', 'with': name }))
+    })
   }
 }
 </script>
 
 <template>
   <div id="app">
-    <unit-selector></unit-selector>
-    <file-uploader></file-uploader>
-
-    <div>
-      <div class="epub" v-for="(epub,epub_name,index) in epubs" :key="index">
-        <p>{{epub_name}}</p>
-
-        <button @click="remove_epub(epub_name)">delete</button>
-        <button @click="$modal.show('conversions', epub_name)">Conversions</button>
-        <button v-if="epub.ready" @click="download_epub(epub_name)">Download</button>
-        <span v-else>
-          converting...
-        </span>
-
-      </div>
+    <div class="header">
+       <div class="project_name">
+            <span>Epub Unit Converter</span>
+       </div>
+       <unit-selector></unit-selector>
     </div>
+
+    <file-uploader :epubs="epubs"></file-uploader>
 
     <!-- List of conversions for selected epub file -->
     <modal 
@@ -141,22 +128,139 @@ export default {
         </li>
       </ul>
     </modal>
+
   </div>
 </template>
 
 <style>
+/* CONTAINER */
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  width: 80vw;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 100px auto;
+  grid-row-gap: 20px;
 }
 
+
+/* HEADER */
+.header{
+    display: grid;
+    width: 34%;
+    justify-self: center;
+    grid-row-gap: 13px;
+}
+.project_name{
+    align-self: center;
+    justify-self: center;
+
+    font-weight: 600;
+    font-size: xx-large;
+}
+.menu{
+    display: grid;
+}
+.menu .menu_items{
+    align-self: center;
+    justify-self: center;
+}
+.menu button{
+    border: none;
+    border-radius: 25px;
+    width: 100px;
+    padding: 7px;
+    font-size: larger;
+    cursor: pointer;
+}
+.menu button.active{
+    color: #ffffff;
+    background: #00bcd4;
+    box-shadow: 1px 1px 8px 0px #1f1e1e;
+}
+.menu button:focus{
+    outline: none;
+}
+.menu button:not(.active):hover{
+    box-shadow: 1px 1px 1px 1px #adaaaa;
+}
+
+
+
+/* DROPZONE AREA */
+.dropzone_area{
+    display: grid;
+    grid-template-rows: 200px auto;
+    background: #bdbdbd;
+    border-style: dashed;
+    border-color: #828282;
+}
+.dropzone_area:hover {
+    cursor: pointer;
+}
+.dropzone_text_hint{
+    align-self: center;
+    justify-self:center;
+
+    font-family: fantasy;
+    font-size: xx-large;
+    color: #e4e4e4;
+}
+.epub_list{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(150px, auto);
+    grid-gap: 10px; 
+    margin: 10px;
+}
+.epub_list:hover {
+    cursor: auto;
+}
 .epub{
-  border: 1px solid #000000;
-  margin: 4px 0;
-  padding: 4px 0;
+    display: grid;
+
+    background: #e6e6e6;
+    border:1px solid white;
+
+}
+.epub .btns{
+    width: 24px;
+    height: 24px;
+}
+.epub .btns:hover{
+    cursor: pointer;
+    stroke: #00bcd4;
+}
+.epub .btns:active{
+    stroke: initial;
+}
+.epub .show_conversions{
+    grid-column-start: 1;
+    grid-row-start: 1;
+    margin: 4px;
+}
+.epub .delete{
+    grid-column-start: 2;
+    justify-self: end;
+    margin: 4px;
+}
+.epub .title{
+    grid-column-start: 1;
+    grid-column-end: 3;
+    justify-self: center;
+    padding: 10px;
+}
+.epub .download{
+    grid-column-start: 1;
+    grid-column-end: 3;
+    justify-self: center;
+}
+.epub .loader{
+    justify-self:center;
+    grid-column-start: 1;
+    grid-column-end: 3;
 }
 </style>
