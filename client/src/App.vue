@@ -34,10 +34,16 @@ export default {
   },
 
   mounted: function(){
+
+    // send default conversion unit
+    WS.onopen = function (e) {
+      WS.send(JSON.stringify({'do': 'set_conversion_unit', 'with': this.conversion_unit}))
+    };
+
     BUS.$on('set_conversion_unit', unit =>{
       this.conversion_unit = unit
       WS.send(JSON.stringify({'do': 'set_conversion_unit', 'with': unit}))
-      console.log('conversion unit set to:', unit);
+      console.log('conversion unit set to:', unit)
     })
 
     BUS.$on('add_epub_file', epub =>{
@@ -70,15 +76,15 @@ export default {
           TOAST.info({
               message:`No conversion needed for ${epub.name}..`
           })
-
+          BUS.$emit('remove_epub', epub.name)
       }else{
           TOAST.success({
               message: `${epub.name} conversion completed with ${epub.num_of_changes} change(s)`
           })
+          
+          // set epub as ready
+          this.epubs[epub.name].ready = true
       }
-
-      // set epub as ready
-      this.epubs[epub.name].ready = true
     })
 
     BUS.$on('show_current_epubs', epubs =>{
