@@ -209,7 +209,8 @@ class ManipulateEpub:
                 if extension not in config.ALLOWED_EPUB_CONTENT_FILE_EXTENSIONS:
                     continue
 
-                self.files_in_epub.append({'name': file.filename, 'content': epub.read(file.filename).decode(), 'content_original_size': file.file_size})
+                file_contents: str = epub.read(file.filename).decode()
+                self.files_in_epub.append({'name': file.filename, 'content': file_contents, 'content_original_size': len(file_contents)})
 
     async def remove_previous_conversions(self):
         ''' go over list of the files in the epub; match & remove previous conversions '''
@@ -238,7 +239,7 @@ class ManipulateEpub:
                     for regexp in regexp_result:
                         # context switch
                         await asyncio.sleep(0)
-                        
+
                         try:
                             # parse regexp result value into Pint
                             pint_parsed_value = UREG(f'{regexp.group("value")} {unit["name"]}')
