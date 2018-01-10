@@ -36,7 +36,7 @@ export default {
   mounted: function(){
 
     // send default conversion unit
-    WS.onopen = function (e) {
+    WS.onopen = e => {
       WS.send(JSON.stringify({'do': 'set_conversion_unit', 'with': this.conversion_unit}))
     };
 

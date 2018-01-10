@@ -406,7 +406,7 @@ async def ws_handler(request):
 
         elif data.get('do') == 'set_conversion_unit':
             # get conversion unit
-            unit_system = data.get('with', 'imperial')
+            unit_system = data.get('with', 'metric')
 
             request.app['conversion_unit'] = unit_system
             log.debug(f'Conversion unit set to {unit_system}')
