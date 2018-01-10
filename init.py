@@ -199,6 +199,8 @@ class ManipulateEpub:
         ''' go over each file in the epub & store it in a list with its content '''
         with zipfile.ZipFile(self.epub_obj, 'r') as epub:
             for file in epub.filelist:
+                # context switch
+                await asyncio.sleep(0)
                 # ignore folders
                 if file.is_dir():
                     continue
@@ -212,6 +214,8 @@ class ManipulateEpub:
     async def remove_previous_conversions(self):
         ''' go over list of the files in the epub; match & remove previous conversions '''
         for file in self.files_in_epub:
+            # context switch
+            await asyncio.sleep(0)
             # replace content of file if it has previous convertions text
             removed_previous_conversions = PREVIOUS_CONVERSIONS_REGEXP.sub('', file['content'])
             if len(removed_previous_conversions) != file['content_original_size']:
@@ -228,14 +232,13 @@ class ManipulateEpub:
                 regexp_result = list(unit['regexp'].finditer(file['content']))
 
                 if len(regexp_result) > 0:
-                    # let's chill for a moment
-                    await asyncio.sleep(0)
-
                     self.log_info(f'Regexp result: {regexp_result}')
 
                     # go over each regexp result on current file
                     for regexp in regexp_result:
-
+                        # context switch
+                        await asyncio.sleep(0)
+                        
                         try:
                             # parse regexp result value into Pint
                             pint_parsed_value = UREG(f'{regexp.group("value")} {unit["name"]}')
