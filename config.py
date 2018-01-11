@@ -138,3 +138,10 @@ ARGS_PARSER.add_argument(
     default=False,
     action='store_true'
 )
+ARGS_PARSER.add_argument(
+    '-b', '--open-browser',
+    dest='browser',
+    help='Opens browser',
+    default=False,
+    action='store_true'
+)

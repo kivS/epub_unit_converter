@@ -14,7 +14,7 @@ import io
 import shutil
 import zipfile
 import webbrowser
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import re
 import pint
 import warnings
@@ -439,9 +439,9 @@ async def epub_download_handler(request):
 
 
 async def on_startup(app):
-    pass
-    # with ThreadPoolExecutor(max_workers=2) as th_e:
-    #     loop.run_in_executor(th_e, webbrowser.open, 'http://localhost:8080/')
+    if args.browser:
+        with ProcessPoolExecutor(max_workers=2) as p_e:
+            loop.run_in_executor(p_e, webbrowser.open, f'http://localhost:{config.SERVER["port"]}/')
 
 
 async def on_shutdown(app):
