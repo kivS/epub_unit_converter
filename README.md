@@ -4,7 +4,7 @@ The program converts the units in the E-book(Epub) from Imperial to Metric and v
 
 ## Usage Requirements:
 - `Python 3.6`
-- `pipenv`
+- [pipenv](https://github.com/pypa/pipenv)
 
   > Install `pipenv`: `python -m pip install pipenv`
 
