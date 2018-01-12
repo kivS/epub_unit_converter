@@ -127,7 +127,7 @@ ARGS_PARSER = argparse.ArgumentParser(
 ARGS_PARSER.add_argument(
     '-d', '--dev',
     dest='dev',
-    help='Activate dev mode',
+    help='Activate dev mode | *Requires the client to be running...',
     default=False,
     action='store_true'
 )
