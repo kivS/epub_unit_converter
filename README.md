@@ -3,10 +3,10 @@
 The program converts the units in the E-book(Epub) from Imperial to Metric and vice-versa.
 
 ## Usage Requirements:
-- `Python 3.6`
+- _Python 3.6_
 - [pipenv](https://github.com/pypa/pipenv)
 
-  > Install `pipenv`: `python -m pip install pipenv`
+  > Install _pipenv_: `python -m pip install pipenv`
 
 ## How to use:
 - Clone repo: `git clone https://github.com/kivS/epub_unit_converter.git`
@@ -32,13 +32,13 @@ The program converts the units in the E-book(Epub) from Imperial to Metric and v
 
 
 ## Dev mode
-`Dev mode` activates:
+_Dev mode_ activates:
 -  debugging info to console and log files in main program
 - client with development web-server
 
 ### Extra Requirements
-- `Nodejs`
-- `Npm` or `Yarn`
+- _Nodejs_
+- _Npm_ or _Yarn_
 
 ### Usage
 
@@ -50,4 +50,4 @@ The program converts the units in the E-book(Epub) from Imperial to Metric and v
 
 - Run dev web-server: `yarn dev` or `npm run dev`
 
-- Open browser in [`http://localhost:7000`](http://localhost:7000) or open the browser automatically by adding the `browser` argument when starting the main program.
+- Open browser in [`http://localhost:7000`](http://localhost:7000) or open the browser automatically by adding the _browser_ argument when starting the main program.
