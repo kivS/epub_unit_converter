@@ -22,6 +22,7 @@ The program converts the units in the E-book(Epub) from Imperial to Metric and v
 
 ## Extras
 - You can run the program with arguments to access extra features:
+
   Argument | Description | Example
   --- | --- | ---
   `-rl` or `--rm-logs` | Resets the logs |`pipenv run python init -rl`
