@@ -2,6 +2,8 @@
 
 The program converts the units in the E-book(Epub) from Imperial to Metric and vice-versa.
 
+![Usage](./usage.png)
+
 ## Usage Requirements:
 - _Python 3.6_
 - [pipenv](https://github.com/pypa/pipenv)
@@ -34,7 +36,7 @@ The program converts the units in the E-book(Epub) from Imperial to Metric and v
 ## Dev mode
 _Dev mode_ activates:
 -  debugging info to console and log files in main program
-- client with development web-server
+- _client_ with development web-server
 
 ### Extra Requirements
 - _Nodejs_
