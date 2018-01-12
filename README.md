@@ -6,7 +6,7 @@ The program converts the units in the E-book(Epub) from Imperial to Metric and v
 - `Python 3.6`
 - [pipenv](https://github.com/pypa/pipenv)
 
-  > Install `pipenv`: ```bash python -m pip install pipenv```
+  > Install `pipenv`: `python -m pip install pipenv`
 
 ## How to use:
 - Clone repo: `git clone https://github.com/kivS/epub_unit_converter.git`
